@@ -31,3 +31,35 @@ repo/
         |
         └── security.yaml
 ```
+
+## For your EKS + ArgoCD setup, the recommended stack is:  
+```text
+Dockerfile
+   |
+   +-- Trivy config
+   +-- Conftest
+
+
+Terraform
+   |
+   +-- Checkov
+
+
+Kubernetes
+   |
+   +-- Trivy config
+   +-- Conftest
+
+
+Container Image
+   |
+   +-- Trivy image scan
+   +-- SBOM
+   +-- Cosign
+
+
+Runtime
+   |
+   +-- Kyverno
+```
+

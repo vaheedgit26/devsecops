@@ -17,8 +17,8 @@ GitHub Actions
     |                |
  Built-in          Company
  checks            policies
-    |
-    |
+    |                |
+    |                |
     +----------------+
              |
              v

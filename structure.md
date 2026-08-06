@@ -1,3 +1,4 @@
+```text
 repo/
 │
 ├── apps/
@@ -28,3 +29,4 @@ repo/
     └── workflows/
         |
         └── security.yaml
+```

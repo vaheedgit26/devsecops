@@ -38,7 +38,7 @@ jobs:
         mkdir -p rendered
         helm template backend ./apps/backend -f ./apps/backend/values.yaml --output-dir rendered/ 
         
-        # helm template backend ./apps/backend -f ./apps/backend/values.yaml > rendered/backend.yaml
+      # helm template backend ./apps/backend -f ./apps/backend/values.yaml > rendered/backend.yaml
 
     #################################################
     # Install Trivy

@@ -60,10 +60,10 @@ jobs:
         --exit-code 1
 
     #################################################
-    # Install Conftest
+    # Install OPA Conftest
     #################################################
 
-    - name: Install Conftest
+    - name: Install OPA Conftest
       run: |
         wget https://github.com/open-policy-agent/conftest/releases/latest/download/conftest_Linux_x86_64.tar.gz
         tar xzf conftest_Linux_x86_64.tar.gz

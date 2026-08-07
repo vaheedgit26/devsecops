@@ -1,3 +1,4 @@
+# Enforce IAM Least Privilege
 package terraform.security
 
 deny[msg] {

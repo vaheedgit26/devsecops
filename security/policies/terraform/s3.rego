@@ -1,3 +1,4 @@
+# Block Public S3 Buckets
 package terraform.security
 
 deny[msg] {

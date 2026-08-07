@@ -1,0 +1,20 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-registries
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: allow-only-ecr
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "Only ECR images allowed"
+      pattern:
+        spec:
+          containers:
+          - image: "123456789.dkr.ecr.us-east-1.amazonaws.com/*"

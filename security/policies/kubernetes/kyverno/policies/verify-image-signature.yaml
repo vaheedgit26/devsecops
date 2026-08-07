@@ -4,6 +4,7 @@ metadata:
   name: verify-image
 spec:
   validationFailureAction: Enforce
+  background: true
   rules:
   - name: verify-signature
     match:

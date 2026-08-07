@@ -27,3 +27,6 @@ spec:
               # subject: "repo:your-org/app-repo:*"
               # subject: "https://github.com/vaheedgit26/devsecops:*"
               # subject: "https://github.com/vaheedgit26/devsecops:.github/workflows/docker-build.yaml@refs/heads/dev
+              # Rekor transparency log (default public)
+              rekor:
+                url: https://rekor.sigstore.dev

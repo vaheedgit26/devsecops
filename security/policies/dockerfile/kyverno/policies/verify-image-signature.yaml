@@ -4,7 +4,7 @@ metadata:
   name: verify-ecr-image-signature
 spec:
   validationFailureAction: Enforce
-  background: true
+  background: false
 
   rules:
   - name: verify-image-signature

@@ -1,0 +1,66 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-ecr-signed-images
+spec:
+  validationFailureAction: Enforce
+  background: true
+
+  rules:
+
+  # --------------------------------------------------
+  # 1. Ensure images come ONLY from ECR
+  # --------------------------------------------------
+  - name: require-ecr-registry
+    match:
+      any:
+      - resources:
+          kinds:
+            - Pod
+    validate:
+      message: "Images must be pulled only from AWS ECR"
+      pattern:
+        spec:
+          containers:
+          - image: "*.dkr.ecr.*.amazonaws.com/*"
+
+  # --------------------------------------------------
+  # 2. Enforce digest (no tags allowed)
+  # --------------------------------------------------
+  - name: require-image-digest
+    match:
+      any:
+      - resources:
+          kinds:
+            - Pod
+    validate:
+      message: "Images must use digest (no tags allowed)"
+      pattern:
+        spec:
+          containers:
+          - image: "*@sha256:*"
+
+  # --------------------------------------------------
+  # 3. Verify Cosign signature (KEYLESS - Sigstore)
+  # --------------------------------------------------
+  - name: verify-image-signature
+    match:
+      any:
+      - resources:
+          kinds:
+            - Pod
+
+    verifyImages:
+    - imageReferences:
+        - "*.dkr.ecr.*.amazonaws.com/*"
+
+      attestors:
+      - count: 1
+        entries:
+        - keyless:
+            subject: "https://github.com/<your-org>/<your-repo>/.github/workflows/<workflow>.yml@refs/heads/main"
+            issuer: "https://token.actions.githubusercontent.com"
+
+      # Rekor transparency log (default public)
+      rekor:
+        url: https://rekor.sigstore.dev

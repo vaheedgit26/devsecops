@@ -1,3 +1,4 @@
+# Block Open Security Groups
 package terraform.security
 
 deny[msg] {

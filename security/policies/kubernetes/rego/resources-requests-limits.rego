@@ -1,3 +1,6 @@
+# CPU:   Minimum: 50m   Maximum: 500m
+# MEMORY:  Minimum: 64Mi  Maximum: 512Mi
+
 package kubernetes.security
 import data.kubernetes.quantity
 #################################################

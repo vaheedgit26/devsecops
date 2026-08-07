@@ -1,0 +1,171 @@
+name: DevSecOps Secure Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  id-token: write   # REQUIRED for Cosign keyless
+
+env:
+  AWS_REGION: us-east-1
+  ACCOUNT_ID: 123456789
+  ECR_REPO: backend
+  IMAGE_NAME: backend
+  CLUSTER_NAME: my-eks-cluster
+  ARGOCD_SERVER: argocd.example.com
+  ARGOCD_APP: backend
+
+jobs:
+  build-sign-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # ---------------------------------------
+    # 1. Checkout Code
+    # ---------------------------------------
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # ---------------------------------------
+    # 2. Configure AWS Credentials (OIDC)
+    # ---------------------------------------
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ env.AWS_REGION }}
+        role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/github-actions-role
+
+    # ---------------------------------------
+    # 3. Login to ECR
+    # ---------------------------------------
+    - name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@v2
+
+    # ---------------------------------------
+    # 4. Build Docker Image
+    # ---------------------------------------
+    - name: Build Image
+      run: |
+        docker build -t $ECR_REPO:${{ github.sha }} .
+
+    # ---------------------------------------
+    # 5. Tag Image for ECR
+    # ---------------------------------------
+    - name: Tag Image
+      run: |
+        docker tag $ECR_REPO:${{ github.sha }} \
+        $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:${{ github.sha }}
+
+    # ---------------------------------------
+    # 6. Push Image to ECR
+    # ---------------------------------------
+    - name: Push Image
+      run: |
+        docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:${{ github.sha }}
+
+    # ---------------------------------------
+    # 7. Get Image Digest (CRITICAL STEP)
+    # ---------------------------------------
+    - name: Get Image Digest
+      id: digest
+      run: |
+        DIGEST=$(aws ecr describe-images \
+          --repository-name $ECR_REPO \
+          --image-ids imageTag=${{ github.sha }} \
+          --query 'imageDetails[0].imageDigest' \
+          --output text)
+
+        echo "DIGEST=$DIGEST" >> $GITHUB_ENV
+        echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+    # ---------------------------------------
+    # 8. Install Trivy
+    # ---------------------------------------
+    - name: Install Trivy
+      run: |
+        sudo apt-get install -y wget
+        wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.0_Linux-64bit.deb
+        sudo dpkg -i trivy_0.50.0_Linux-64bit.deb
+
+    # ---------------------------------------
+    # 9. Generate SBOM (CycloneDX)
+    # ---------------------------------------
+    - name: Generate SBOM
+      run: |
+        trivy image \
+          --format cyclonedx \
+          --output sbom.json \
+          $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO@${{ env.DIGEST }}
+
+    # ---------------------------------------
+    # 10. Install Cosign
+    # ---------------------------------------
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3
+
+    # ---------------------------------------
+    # 11. Keyless Sign Image
+    # ---------------------------------------
+    - name: Cosign Sign (Keyless)
+      run: |
+        cosign sign --yes \
+        $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO@${{ env.DIGEST }}
+
+    # ---------------------------------------
+    # 12. Attach SBOM Attestation
+    # ---------------------------------------
+    - name: Attach SBOM Attestation
+      run: |
+        cosign attest --yes \
+          --predicate sbom.json \
+          --type cyclonedx \
+          $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO@${{ env.DIGEST }}
+
+    # ---------------------------------------
+    # 13. Update Helm values.yaml with Digest
+    # ---------------------------------------
+    - name: Update Helm values
+      run: |
+        sed -i "s|tag:.*|digest: \"${{ env.DIGEST }}\"|g" apps/backend/values.yaml
+
+    # ---------------------------------------
+    # 14. Commit & Push (GitOps Trigger)
+    # ---------------------------------------
+    - name: Commit Changes
+      run: |
+        git config --global user.email "devsecops@company.com"
+        git config --global user.name "github-actions"
+        git add apps/backend/values.yaml
+        git commit -m "Update image digest ${{ env.DIGEST }}"
+        git push
+
+    # ---------------------------------------
+    # 15. Install ArgoCD CLI
+    # ---------------------------------------
+    - name: Install ArgoCD CLI
+      run: |
+        curl -sSL -o argocd \
+        https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+        chmod +x argocd
+        sudo mv argocd /usr/local/bin/
+
+    # ---------------------------------------
+    # 16. ArgoCD Login
+    # ---------------------------------------
+    - name: ArgoCD Login
+      run: |
+        argocd login $ARGOCD_SERVER \
+          --username admin \
+          --password ${{ secrets.ARGOCD_PASSWORD }} \
+          --insecure
+
+    # ---------------------------------------
+    # 17. Sync Application
+    # ---------------------------------------
+    - name: ArgoCD Sync
+      run: |
+        argocd app sync $ARGOCD_APP

@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-ecr-image-signature
+spec:
+  validationFailureAction: Enforce
+  background: true
+
+  rules:
+  - name: verify-image-signature
+    match:
+      any:
+        - resources:
+            kinds:
+              - Pod
+    verifyImages:
+      - imageReferences:
+          - "123456789012.dkr.ecr.us-east-1.amazonaws.com/*"
+        # Replace tag with digest
+        #mutateDigest: true
+
+        # Require immutable digest verification
+        #verifyDigest: true
+        attestors:
+          - count: 1
+            entries:
+              - keys:
+                  publicKeys: |-
+                    -----BEGIN PUBLIC KEY-----
+                    YOUR_COSIGN_PUBLIC_KEY
+                    -----END PUBLIC KEY-----

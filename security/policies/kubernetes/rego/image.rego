@@ -1,5 +1,5 @@
+# This checks Deployment main container image must come from ECR only 
 package kubernetes.security
-
 
 #################################################
 # Allowed ECR Registry

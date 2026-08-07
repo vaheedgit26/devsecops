@@ -1,15 +1,31 @@
 package kubernetes.security
 
-deny[msg] {
-    container := input.spec.template.spec.containers[_]
-    not allowed_image(container.image)
-    msg := sprintf(
-        "Image '%s' is not from approved registry",
-        [container.image]
-    )
-}
 
-allowed_image(image) {
-    registry := data.allowed_registries[_]
-    startswith(image, registry)
+#################################################
+# Allowed ECR Registry
+#################################################
+
+allowed_registry := "123456789012.dkr.ecr.us-east-1.amazonaws.com"
+
+#allowed_registries := [
+#    "123456789012.dkr.ecr.us-east-1.amazonaws.com",
+#    "docker.io"
+#]
+
+#################################################
+# Check only Deployment resources
+#################################################
+
+deny[msg] {
+    input.kind == "Deployment"
+    image := input.spec.template.spec.containers[0].image
+    not startswith(image, allowed_registry)
+    msg := sprintf(
+        "Deployment '%s' main container image '%s' must come from ECR registry '%s'",
+        [
+            input.metadata.name,
+            image,
+            allowed_registry
+        ]
+    )
 }

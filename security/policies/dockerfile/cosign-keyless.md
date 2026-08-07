@@ -10,7 +10,7 @@ trivy image \
   --output sbom.json \
   $IMAGE_WITH_DIGEST
 ```
-3. SBOM ATTESTATION
+3. SBOM Attestation
 ```bash
 cosign attest \
   --yes \

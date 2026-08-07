@@ -1,0 +1,57 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deployment-main-container-resource-request-range
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  #################################################
+  # CPU Request Range Validation
+  #################################################
+  - name: validate-main-container-cpu-request
+    match:
+      any:
+      - resources:
+          kinds:
+          - Deployment
+    validate:
+      message: >-
+        Deployment main container CPU request must be between 50m and 500m.
+      deny:
+        conditions:
+          any:
+          # CPU less than 50m
+          - key: "{{ request.object.spec.template.spec.containers[0].resources.requests.cpu }}"
+            operator: LessThan
+            value: "50m"
+
+          # CPU greater than 500m
+          - key: "{{ request.object.spec.template.spec.containers[0].resources.requests.cpu }}"
+            operator: GreaterThan
+            value: "500m"
+
+  #################################################
+  # Memory Request Range Validation
+  #################################################
+  - name: validate-main-container-memory-request
+    match:
+      any:
+      - resources:
+          kinds:
+          - Deployment
+    validate:
+      message: >-
+        Deployment main container memory request must be between 64Mi and 512Mi.
+      deny:
+        conditions:
+          any:
+          # Memory less than 64Mi
+          - key: "{{ request.object.spec.template.spec.containers[0].resources.requests.memory }}"
+            operator: LessThan
+            value: "64Mi"
+
+          # Memory greater than 512Mi
+          - key: "{{ request.object.spec.template.spec.containers[0].resources.requests.memory }}"
+            operator: GreaterThan
+            value: "512Mi"

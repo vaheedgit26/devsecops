@@ -16,8 +16,7 @@ spec:
           kinds:
           - Deployment
     validate:
-      message: >-
-        Deployment main container CPU request must be between 50m and 500m.
+      message: "Deployment main container CPU request must be between 50m and 500m."
       deny:
         conditions:
           any:
@@ -41,8 +40,7 @@ spec:
           kinds:
           - Deployment
     validate:
-      message: >-
-        Deployment main container memory request must be between 64Mi and 512Mi.
+      message: "Deployment main container memory request must be between 64Mi and 512Mi."  
       deny:
         conditions:
           any:

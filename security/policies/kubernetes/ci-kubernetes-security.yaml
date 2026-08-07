@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-
+      
 permissions:
   contents: read
 
@@ -15,62 +15,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    #################################################
-    # Checkout repository
-    #################################################
     
+    # Checkout repository
     - name: Checkout code
       uses: actions/checkout@v4
       
-    #################################################
-    # Install Helm
-    #################################################
-
+    # Install Helm    
     - name: Install Helm
       uses: azure/setup-helm@v4
 
-    #################################################
-    # Render Helm Templates
-    #################################################
-
+    # Render Helm Templates 
     - name: Render Helm manifests
       run: |
         mkdir -p rendered
-        helm template backend ./apps/backend -f ./apps/backend/values.yaml --output-dir rendered/ 
-        
+        helm template backend ./apps/backend -f ./apps/backend/values.yaml --output-dir rendered/    
       # helm template backend ./apps/backend -f ./apps/backend/values.yaml > rendered/backend.yaml
 
-    #################################################
     # Install Trivy
-    #################################################
-
     - name: Install Trivy
       uses: aquasecurity/setup-trivy@v0.2.0
 
-    #################################################
     # Trivy Kubernetes Scan
-    #################################################
-
     - name: Trivy Kubernetes Manifest Scan
       run: |
         trivy config rendered/ \
         --severity HIGH,CRITICAL \
         --exit-code 1
-
-    #################################################
+    
     # Install OPA Conftest
-    #################################################
-
     - name: Install OPA Conftest
       run: |
         wget https://github.com/open-policy-agent/conftest/releases/latest/download/conftest_Linux_x86_64.tar.gz
         tar xzf conftest_Linux_x86_64.tar.gz
         sudo mv conftest /usr/local/bin/
-
-    #################################################
-    # Run Custom OPA Policies
-    #################################################
-
+    
+    # Run Custom OPA Policies    
     - name: OPA Kubernetes Policy Check
       run: |
         conftest test rendered/ \

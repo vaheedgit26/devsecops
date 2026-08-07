@@ -1,0 +1,142 @@
+name: DevSecOps Pipeline (Keyless + Trivy SBOM)
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+  id-token: write   # REQUIRED for keyless signing
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPO: backend
+  ACCOUNT_ID: 123456789
+
+jobs:
+  build-sign-sbom:
+    runs-on: ubuntu-latest
+
+    steps:
+    # -----------------------------
+    # Checkout
+    # -----------------------------
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # -----------------------------
+    # Configure AWS
+    # -----------------------------
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/github-actions-role
+        aws-region: ${{ env.AWS_REGION }}
+
+    # -----------------------------
+    # Login to ECR
+    # -----------------------------
+    - name: Login to ECR
+      uses: aws-actions/amazon-ecr-login@v2
+
+    # -----------------------------
+    # Build & Push Image
+    # -----------------------------
+    - name: Build & Push Docker Image
+      run: |
+        IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${{ github.sha }}
+        
+        docker build -t $IMAGE_URI .
+        docker push $IMAGE_URI
+
+        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+    # -----------------------------
+    # Get Image Digest
+    # -----------------------------
+    - name: Get Image Digest
+      run: |
+        DIGEST=$(aws ecr describe-images \
+          --repository-name $ECR_REPO \
+          --image-ids imageTag=${{ github.sha }} \
+          --query 'imageDetails[0].imageDigest' \
+          --output text)
+
+        echo "IMAGE_DIGEST=$DIGEST" >> $GITHUB_ENV
+
+    # -----------------------------
+    # Install Trivy
+    # -----------------------------
+    - name: Install Trivy
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        version: latest
+
+    # -----------------------------
+    # Generate SBOM using Trivy
+    # -----------------------------
+    - name: Generate SBOM (Trivy)
+      run: |
+        IMAGE=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}@${IMAGE_DIGEST}
+
+        trivy image \
+          --format cyclonedx \
+          --output sbom.json \
+          $IMAGE
+
+    # -----------------------------
+    # Install Cosign
+    # -----------------------------
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3
+
+    # -----------------------------
+    # Keyless Sign Image
+    # -----------------------------
+    - name: Sign Image (Keyless)
+      run: |
+        cosign sign \
+          ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}@${IMAGE_DIGEST} \
+          --yes
+
+    # -----------------------------
+    # Attach SBOM Attestation
+    # -----------------------------
+    - name: Attach SBOM Attestation
+      run: |
+        cosign attest \
+          --predicate sbom.json \
+          --type cyclonedx \
+          ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}@${IMAGE_DIGEST} \
+          --yes
+
+    # -----------------------------
+    # OPTIONAL: Vulnerability Scan (Fail Pipeline)
+    # -----------------------------
+    - name: Trivy Vulnerability Scan
+      run: |
+        IMAGE=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}@${IMAGE_DIGEST}
+
+        trivy image \
+          --severity HIGH,CRITICAL \
+          --exit-code 1 \
+          $IMAGE
+
+    # -----------------------------
+    # Update Helm values.yaml
+    # -----------------------------
+    - name: Update Helm Values
+      run: |
+        yq -i '.image.repository = strenv(ACCOUNT_ID) + ".dkr.ecr." + strenv(AWS_REGION) + ".amazonaws.com/" + strenv(ECR_REPO)' apps/backend/values.yaml
+        yq -i '.image.digest = strenv(IMAGE_DIGEST)' apps/backend/values.yaml
+
+    # -----------------------------
+    # Commit & Push (GitOps trigger)
+    # -----------------------------
+    - name: Commit & Push Changes
+      run: |
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git add apps/backend/values.yaml
+        git commit -m "Update image digest + SBOM signed"
+        git push

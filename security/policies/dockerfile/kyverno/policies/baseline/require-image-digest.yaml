@@ -1,21 +1,30 @@
+# This allows only Deployment main container should have image DIGEST instead of tags
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: require-image-digest
+  name: deployment-main-container-must-use-digest
 spec:
+  # Reject non-compliant deployments
   validationFailureAction: Enforce
-  background: true
+  
+  # Check only new/updated resources
+  background: false
 
   rules:
-    - name: check-image-digest
+    - name: validate-main-container-image-digest
       match:
         any:
           - resources:
               kinds:
-                - Pod
+                - Deployment
       validate:
-        message: "Images must use digest instead of tags"
-        pattern:
-          spec:
-            containers:
-              - image: "*@sha256:*"
+        message: >-
+          Deployment main container image must use immutable digest
+          format image@sha256:<digest> instead of image tags.
+        deny:
+          conditions:
+            all:
+              # Get first container image (main application container)
+              - key: "{{ request.object.spec.template.spec.containers[0].image }}"
+                operator: NotEquals
+                value: "{{ regex_match('.*@sha256:.*', request.object.spec.template.spec.containers[0].image) }}"

@@ -118,7 +118,7 @@ jobs:
       run: |
         trivy image \
           --format cyclonedx \
-          -o sbom.json \
+          --output sbom.json \
           $IMAGE_URI
 
     # 🔹 SBOM ATTESTATION (digest-based ✅)

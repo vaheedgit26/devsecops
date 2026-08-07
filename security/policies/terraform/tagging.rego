@@ -1,3 +1,4 @@
+# Enforce Mandatory Tags
 package terraform.security
 
 required_tags := ["Owner", "Environment"]

@@ -1,4 +1,24 @@
-## 🔵 2. GitHub Actions — KEYLESS SIGNING + SBOM  
+## Key less signing  
+1. Sign the image
+```bash
+cosign sign --yes --key cosign.key $IMAGE_WITH_DIGEST
+```
+2. Generate SBOM
+```bash
+trivy image \
+  --format cyclonedx \
+  --output sbom.json \
+  $IMAGE_WITH_DIGEST
+```
+3. SBOM ATTESTATION
+```bash
+cosign attest \
+  --yes \
+  --predicate sbom.json \
+  --type cyclonedx \
+  $IMAGE_WITH_DIGEST
+```
+## 🔵 GitHub Actions — KEYLESS SIGNING + SBOM  
 **🔐 Required Permission (IMPORTANT)**  
 ```yaml
 permissions:
@@ -92,16 +112,16 @@ jobs:
     - name: Generate SBOM (CycloneDX)
       run: |
         trivy image \
-        --format cyclonedx \
-        --output sbom.json \
-        $IMAGE_WITH_DIGEST
+          --format cyclonedx \
+          --output sbom.json \
+          $IMAGE_WITH_DIGEST
 
     # 🔹 SBOM ATTESTATION (KEYLESS)
     - name: Attach SBOM (Keyless)
       run: |
         cosign attest \
-        --yes \
-        --predicate sbom.json \
-        --type cyclonedx \
-        $IMAGE_WITH_DIGEST
+          --yes \
+          --predicate sbom.json \
+          --type cyclonedx \
+          $IMAGE_WITH_DIGEST
 ```

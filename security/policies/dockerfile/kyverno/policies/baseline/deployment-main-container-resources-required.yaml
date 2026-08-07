@@ -1,0 +1,33 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deployment-main-container-resources-required
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  #################################################
+  # Main container must define resources
+  #################################################
+  - name: main-container-resources-required
+    match:
+      any:
+      - resources:
+          kinds:
+          - Deployment
+    validate:
+      message: "Deployment main container must define resource requests and limits."
+      pattern:
+        spec:
+          template:
+            spec:
+              containers:
+              - resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+                  limits:
+                    cpu: "?*"
+                    memory: "?*"
+
+

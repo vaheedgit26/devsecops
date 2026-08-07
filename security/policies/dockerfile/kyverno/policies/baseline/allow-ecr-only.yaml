@@ -1,20 +1,26 @@
+# This allows Deployment main container image must come from ECR only 
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: require-ecr-registry
+  name: deployment-image-must-come-from-ecr
 spec:
   validationFailureAction: Enforce
-  background: true
+  background: false
   rules:
   - name: allow-only-ecr
     match:
       any:
       - resources:
           kinds:
-          - Pod
+          - Deployment
     validate:
-      message: "Only ECR images allowed"
-      pattern:
-        spec:
-          containers:
-          - image: "123456789.dkr.ecr.us-east-1.amazonaws.com/*"
+      message: "Deployment main container image must come from ECR only"
+      foreach:
+      - list: "request.object.spec.template.spec.containers"
+        deny:
+          conditions:
+            all:
+            - key: "{{ element.image }}"
+              operator: NotIn
+              value:
+              - "123456789012.dkr.ecr.us-east-1.amazonaws.com/*"

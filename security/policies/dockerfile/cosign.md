@@ -1,5 +1,7 @@
-## Key Based
+## Key Based Signing  
+1. Sign the Image
 ```bash
+1. Sign the Image
 cosign sign \
 --key cosign.key \
 123456789.dkr.ecr.us-east-1.amazonaws.com/backend@sha256:xxxx

@@ -15,6 +15,7 @@ spec:
     verifyImages:
     - imageReferences:
       - "123456789012.dkr.ecr.us-east-1.amazonaws.com/*"
+      #  - "*.dkr.ecr.*.amazonaws.com/*"
       attestations:
       - predicateType: https://cyclonedx.org/schema
         attestors:

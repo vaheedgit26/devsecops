@@ -80,19 +80,19 @@ jobs:
     # 🔹 Build
     - name: Build Image
       run: |
-        docker build -t $ECR_REPO:latest .
+        docker build -t $ECR_REPO:${{ github.sha }} .
 
     # 🔹 Push
     - name: Push Image
       run: |
-        docker push $ECR_REPO:latest
+        docker push $ECR_REPO:${{ github.sha }}
 
     # 🔥 Get DIGEST from ECR (BEST PRACTICE)
     - name: Get Image Digest from ECR
       run: |
         DIGEST=$(aws ecr describe-images \
           --repository-name app \
-          --image-ids imageTag=latest \
+          --image-ids imageTag=${{ github.sha }} \
           --query 'imageDetails[0].imageDigest' \
           --output text)
 

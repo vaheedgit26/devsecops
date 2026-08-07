@@ -227,7 +227,7 @@ jobs:
       run: |
         trivy image \
         --format cyclonedx \
-        -output sbom.json \
+        --output sbom.json \
         $IMAGE_WITH_DIGEST
 
     # 🔹 SBOM ATTESTATION (KEYLESS)

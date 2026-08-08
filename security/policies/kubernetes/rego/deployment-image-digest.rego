@@ -1,4 +1,4 @@
-# This checks Deployment main container image should contain image DIGEST not tags
+# This checks Deployment main container image should contain image DIGEST not tags or 'latest'
 
 package kubernetes.security
 

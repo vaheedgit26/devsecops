@@ -1,7 +1,7 @@
 ## Key less signing  
 1. Sign the image
 ```bash
-cosign sign --yes $IMAGE_WITH_DIGEST
+cosign sign --yes --keyless $IMAGE_WITH_DIGEST
 ```
 2. Generate SBOM
 ```bash

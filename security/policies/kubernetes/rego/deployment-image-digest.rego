@@ -9,7 +9,9 @@ package kubernetes.security
 deny[msg] {
   input.kind == "Deployment"
 
+  # Main container = containers[0]
   container := input.spec.template.spec.containers[0]
+
   image := container.image
 
   not has_digest(image)

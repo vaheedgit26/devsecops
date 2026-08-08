@@ -91,3 +91,7 @@ spec:
             subject: "repo:your-org/your-repo:*"
             issuer: "https://token.actions.githubusercontent.com"
 ```
+## 💡 Bonus Tip:  
+```bash
+cosign verify <image>
+```

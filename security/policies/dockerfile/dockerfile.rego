@@ -5,11 +5,11 @@ package dockerfile.security
 # ------------------------------
 
 cmd(i) = c {
-  c := lower(input[i].Cmd)
+    c := lower(input[i].Cmd)
 }
 
 val(i) = v {
-  v := lower(concat(" ", input[i].Value))
+    v := lower(concat(" ", input[i].Value))
 }
 
 # ------------------------------
@@ -17,13 +17,17 @@ val(i) = v {
 # ------------------------------
 
 deny[msg] {
-  cmd(i) == "from"
-  image := input[i].Value[0]
+    cmd(i) == "from"
 
-  not contains(image, ":")
-  not contains(image, "@sha256:")
+    image := input[i].Value[0]
 
-  msg := sprintf("Line %d: Base image must have explicit tag or digest: %s", [i, image])
+    not contains(image, ":")
+    not contains(image, "@sha256:")
+
+    msg := sprintf(
+        "Line %d: Base image must have explicit tag or digest: %s",
+        [i, image]
+    )
 }
 
 # ------------------------------
@@ -31,148 +35,192 @@ deny[msg] {
 # ------------------------------
 
 deny[msg] {
-  cmd(i) == "from"
-  image := lower(input[i].Value[0])
+    cmd(i) == "from"
 
-  contains(image, ":latest")
+    image := lower(input[i].Value[0])
 
-  msg := sprintf("Line %d: Avoid using latest tag: %s", [i, image])
+    contains(image, ":latest")
+
+    msg := sprintf(
+        "Line %d: Avoid using latest tag: %s",
+        [i, image]
+    )
 }
 
 # ------------------------------
-# 3. Require USER (no implicit root)
+# 3. Require USER
 # ------------------------------
 
 deny[msg] {
-  not any_user_defined
-  msg := "No USER specified. Container runs as root by default"
+    not any_user_defined
+
+    msg := "No USER specified. Container runs as root by default"
 }
 
 any_user_defined {
-  some i
-  cmd(i) == "user"
+    some i
+
+    cmd(i) == "user"
 }
 
-# ---------------------------------
+# ------------------------------
 # 4. Prevent root user explicitly
-# ---------------------------------
+# ------------------------------
 
 deny[msg] {
-  cmd(i) == "user"
-  user := lower(input[i].Value[0])
+    cmd(i) == "user"
 
-  user == "root" 
-  or user == "0"
-  or startswith(user, "0:")
+    user := lower(input[i].Value[0])
 
-  msg := sprintf("Line %d: Avoid running as root user", [i])
+    user == "root"
+    or user == "0"
+    or startswith(user, "0:")
+
+    msg := sprintf(
+        "Line %d: Avoid running as root user",
+        [i]
+    )
 }
 
-# ---------------------------------
+# ------------------------------
 # 5. Prevent curl | bash
-# ---------------------------------
+# ------------------------------
 
 deny[msg] {
-  cmd(i) == "run"
-  line := val(i)
+    cmd(i) == "run"
 
-  contains(line, "curl")
-  contains(line, "|")
-  contains(line, "bash")
+    line := val(i)
 
-  msg := sprintf("Line %d: Avoid curl | bash pattern", [i])
+    contains(line, "curl")
+    contains(line, "|")
+    contains(line, "bash")
+
+    msg := sprintf(
+        "Line %d: Avoid curl | bash pattern",
+        [i]
+    )
 }
 
-# ---------------------------------
+# ------------------------------
 # 6. Avoid ADD
-# ---------------------------------
+# ------------------------------
 
 deny[msg] {
-  cmd(i) == "add"
-  msg := sprintf("Line %d: Use COPY instead of ADD", [i])
+    cmd(i) == "add"
+
+    msg := sprintf(
+        "Line %d: Use COPY instead of ADD",
+        [i]
+    )
 }
 
-# ---------------------------------
+# ------------------------------
 # 7. Avoid sudo
-# ---------------------------------
+# ------------------------------
 
 deny[msg] {
-  cmd(i) == "run"
-  contains(val(i), "sudo")
+    cmd(i) == "run"
 
-  msg := sprintf("Line %d: Avoid using sudo", [i])
+    contains(val(i), "sudo")
+
+    msg := sprintf(
+        "Line %d: Avoid using sudo",
+        [i]
+    )
 }
 
-# ----------------------------------
-# 8. Apt hygiene (cleanup)
-# ----------------------------------
+# ------------------------------
+# 8. Apt hygiene
+# ------------------------------
 
 deny[msg] {
-  cmd(i) == "run"
-  line := val(i)
+    cmd(i) == "run"
 
-  contains(line, "apt-get install")
-  not contains(line, "rm -rf /var/lib/apt/lists")
+    line := val(i)
 
-  msg := sprintf("Line %d: Clean apt cache after install", [i])
+    contains(line, "apt-get install")
+    not contains(line, "rm -rf /var/lib/apt/lists")
+
+    msg := sprintf(
+        "Line %d: Clean apt cache after install",
+        [i]
+    )
 }
 
-# -------------------------------------------
-# 9. Avoid apt upgrade
-# -------------------------------------------
+# ------------------------------
+# 9. Avoid apt-get upgrade
+# ------------------------------
 
 deny[msg] {
-  cmd(i) == "run"
-  contains(val(i), "apt-get upgrade")
+    cmd(i) == "run"
 
-  msg := sprintf("Line %d: Avoid apt-get upgrade", [i])
+    contains(val(i), "apt-get upgrade")
+
+    msg := sprintf(
+        "Line %d: Avoid apt-get upgrade",
+        [i]
+    )
 }
 
-# ----------------------------------
+# ------------------------------
 # 10. Ensure WORKDIR exists
-# ----------------------------------
+# ------------------------------
 
 warn[msg] {
-  not workdir_defined
-  msg := "WORKDIR is not defined"
+    not workdir_defined
+
+    msg := "WORKDIR is not defined"
 }
 
 workdir_defined {
-  some i
-  cmd(i) == "workdir"
+    some i
+
+    cmd(i) == "workdir"
 }
 
-# ----------------------------------
+# ------------------------------
 # 11. Avoid cd
-# ----------------------------------
+# ------------------------------
 
 deny[msg] {
-  cmd(i) == "run"
-  contains(val(i), "cd ")
+    cmd(i) == "run"
 
-  msg := sprintf("Line %d: Use WORKDIR instead of cd", [i])
+    contains(val(i), "cd ")
+
+    msg := sprintf(
+        "Line %d: Use WORKDIR instead of cd",
+        [i]
+    )
 }
 
-# ----------------------------------
+# ------------------------------
 # 12. Multi-stage recommendation
-# ----------------------------------
+# ------------------------------
 
 warn[msg] {
-  count(froms) < 2
-  msg := "Consider using multi-stage builds"
+    count(froms) < 2
+
+    msg := "Consider using multi-stage builds"
 }
 
 froms[i] {
-  cmd(i) == "from"
+    cmd(i) == "from"
 }
 
-# ----------------------------------
+# ------------------------------
 # 13. Detect secrets in ENV
-# ----------------------------------
+# ------------------------------
 
 deny[msg] {
-  cmd(i) == "env"
-  re_match("(?i)(password|passwd|secret|token|api[_-]?key|access[_-]?key|auth|credential)", val(i))
+    cmd(i) == "env"
 
-  msg := sprintf("Line %d: Possible secret in ENV", [i])
+    re_match(
+        "(?i)(password|passwd|secret|token|api[_-]?key|access[_-]?key|auth|credential)",
+        val(i)
+    )
+
+    msg := sprintf(
+        "Line %d: Possible secret in ENV",
+        [i]
+    )
 }

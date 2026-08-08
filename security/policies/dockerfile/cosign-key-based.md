@@ -7,9 +7,9 @@ cosign sign \
 ```
 2. Generate SBOM
 ```bash
-trivy image \
+trivy image --yes \
 --format cyclonedx \
--o sbom.json \
+--output sbom.json \
 $IMAGE
 ```
 3. SBOM Attestation

@@ -1,0 +1,124 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+
+metadata:
+  name: enforce-main-container-image-signature
+
+  annotations:
+    policies.kyverno.io/title: Enforce Main Container Image Signature
+    policies.kyverno.io/category: Software Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Deployment
+    policies.kyverno.io/description: >-
+      Requires the main application container image of every Deployment
+      to be immutable and cryptographically signed using either an approved
+      Cosign key-based signing key or an approved Cosign keyless GitHub
+      Actions identity.
+
+spec:
+
+  # ----------------------------------------------------------
+  # Enforce failed image verification
+  # ----------------------------------------------------------
+
+  validationFailureAction: Enforce
+
+  # ----------------------------------------------------------
+  # Do not evaluate existing resources in background scans.
+  # Enforcement occurs during admission.
+  # ----------------------------------------------------------
+
+  background: false
+
+  # ----------------------------------------------------------
+  # Give Kyverno enough time to contact ECR, Rekor and
+  # other signature infrastructure.
+  # ----------------------------------------------------------
+
+  webhookConfiguration:
+    timeoutSeconds: 30
+
+  rules:
+
+    # ==========================================================
+    # RULE 1
+    # KEY-BASED COSIGN SIGNATURE
+    #
+    # Main container image must:
+    #
+    #   1. Come from ECR
+    #   2. Use an image digest
+    #   3. Have a valid Cosign signature
+    #   4. Signature must match the approved public key
+    # ==========================================================
+
+    - name: verify-main-container-key-based-signature
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      verifyImages:
+
+        # ------------------------------------------------------
+        # Only ECR images are subject to this rule.
+        #
+        # Change the account/region/repository pattern according
+        # to your environment.
+        # ------------------------------------------------------
+
+        - imageReferences:
+            - "123456789012.dkr.ecr.us-east-1.amazonaws.com/*"
+
+          # ----------------------------------------------------
+          # Enforce signature verification
+          # ----------------------------------------------------
+
+          failureAction: Enforce
+
+          # ----------------------------------------------------
+          # Do NOT allow tag-only references.
+          #
+          # Images must already contain @sha256:...
+          # ----------------------------------------------------
+
+          verifyDigest: true
+
+          # ----------------------------------------------------
+          # Do not automatically mutate a tag into a digest.
+          #
+          # Your pipeline should deploy the immutable digest.
+          # ----------------------------------------------------
+
+          mutateDigest: false
+
+          # ----------------------------------------------------
+          # Require at least ONE valid attestor.
+          # ----------------------------------------------------
+
+          attestors:
+
+            - count: 1
+
+              entries:
+
+                # ------------------------------------------------
+                # COSIGN KEY-BASED VERIFICATION
+                # ------------------------------------------------
+
+                - keys:
+
+                    # Replace this with your actual
+                    # Cosign public key.
+                    publicKeys: |-
+                      -----BEGIN PUBLIC KEY-----
+                      YOUR_COSIGN_PUBLIC_KEY
+                      -----END PUBLIC KEY-------
+
+
+          
+
+                   
+

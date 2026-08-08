@@ -41,7 +41,6 @@ spec:
   rules:
 
     # ==========================================================
-    # RULE 1
     # KEY-BASED COSIGN SIGNATURE
     #
     # Main container image must:

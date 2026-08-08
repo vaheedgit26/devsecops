@@ -27,9 +27,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container must define a CPU request.
-
+        message: "The Deployment main container must define a CPU request."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 
@@ -53,9 +52,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container CPU request must be at least 50m.
-
+        message: "The Deployment main container CPU request must be at least 50m."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 
@@ -79,9 +77,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container CPU request must not exceed 500m.
-
+        message: "The Deployment main container CPU request must not exceed 500m."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 
@@ -105,9 +102,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container must define a memory request.
-
+        message: "The Deployment main container must define a memory request."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 
@@ -131,9 +127,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container memory request must be at least 64Mi.
-
+        message: "The Deployment main container memory request must be at least 64Mi."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 
@@ -157,9 +152,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container memory request must not exceed 512Mi.
-
+        message: "The Deployment main container memory request must not exceed 512Mi."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 
@@ -183,9 +177,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container must define a CPU limit.
-
+        message: "The Deployment main container must define a CPU limit."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 
@@ -209,9 +202,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container CPU limit must not exceed 500m.
-
+        message: "The Deployment main container CPU limit must not exceed 500m."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 
@@ -235,9 +227,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container must define a memory limit.
-
+        message: "The Deployment main container must define a memory limit."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 
@@ -261,9 +252,8 @@ spec:
                 - Deployment
 
       validate:
-        message: >-
-          The Deployment main container memory limit must not exceed 512Mi.
-
+        message: "The Deployment main container memory limit must not exceed 512Mi."
+          
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
 

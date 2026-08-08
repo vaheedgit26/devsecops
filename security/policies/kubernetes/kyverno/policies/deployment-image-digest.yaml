@@ -13,12 +13,18 @@ spec:
               kinds:
                 - Deployment
       validate:
-        message: "Image must use digest"
+        message: "Deployment main conatiner image must use digest only - no tag - no latest"
         foreach:
           - list: "request.object.spec.template.spec.containers[0]"
             deny:
               conditions:
                 any:
+                  # ❌ Block images without digest (covers implicit latest too)
                   - key: "{{ element.image }}"
                     operator: NotMatches
                     value: ".*@sha256:[a-f0-9]{64}$"
+                    
+                  # ❌ Block explicit :latest
+                  - key: "{{ element.image }}"
+                    operator: Matches
+                    value: ":latest$"

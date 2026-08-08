@@ -46,6 +46,24 @@ RUN cd /app && ./build.sh
 USER root
 ```
 
+Hadolint can flag things such as:
+
+`**latest**`
+```dockerfile
+FROM ubuntu:latest
+```
+
+It can recommend avoiding floating tags.  
+
+**`apt-get` issues**  
+ 
+For example:  
+```dockerfile
+RUN apt-get update  
+RUN apt-get install -y curl  
+```
+Hadolint can identify package-management problems and recommend better practices.  
+
 
 
 

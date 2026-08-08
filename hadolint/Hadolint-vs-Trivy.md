@@ -48,14 +48,14 @@ USER root
 
 Hadolint can flag things such as:
 
-`**latest**`
+**`latest`**
 ```dockerfile
 FROM ubuntu:latest
 ```
 
 It can recommend avoiding floating tags.  
 
-**`apt-get` issues**  
+**`apt-get`** **issues**  
  
 For example:  
 ```dockerfile
@@ -63,6 +63,89 @@ RUN apt-get update
 RUN apt-get install -y curl  
 ```
 Hadolint can identify package-management problems and recommend better practices.  
+
+**`ADD`**  
+```dockerfile
+ADD app.tar /app/
+```
+Hadolint can recommend:  
+```dockerfile
+COPY app.tar /app/
+```
+when `ADD` functionality isn't needed.  
+
+**Multiple `RUN` layers**
+
+It can identify Dockerfile construction issues.
+
+**`Shell issues`**  
+
+For example:  
+```dockerfile
+RUN echo $PASSWORD  
+```
+or shell constructs that are likely to behave unexpectedly.    
+
+**`sudo`**
+```dockerfile
+RUN sudo apt-get install ...
+```
+Hadolint can flag this as unnecessary inside a container.  
+
+`**USER**`  
+
+Hadolint has rules related to running containers as non-root.  
+
+
+## 3. What Trivy Dockerfile scanning does  
+
+Trivy approaches the Dockerfile from a different perspective:  
+
+> **"Does this Dockerfile contain security-relevant misconfigurations?"**
+
+For example:  
+```dockerfile
+FROM ubuntu:22.04  
+
+USER root  
+
+ENV AWS_SECRET_ACCESS_KEY=abc123  
+
+EXPOSE 22  
+
+RUN chmod 777 /app  
+```
+
+Trivy's configuration scanner can identify security-related configuration issues depending on the rules/checks available in the installed Trivy version.  
+
+Trivy is much more focused on:  
+```text
+Security
+   ↓
+Misconfiguration
+   ↓
+Risk
+
+rather than general Dockerfile quality.
+```
+
+## 4. The biggest difference: linting vs security  
+
+Think about this:  
+```dockerfile
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
+```
+Hadolint is very good at saying:  
+
+> "This Dockerfile follows/doesn't follow Dockerfile best practices."  
+
+Trivy is more interested in:  
+
+"Does this Dockerfile introduce a security risk?"  
+
+So:  
 
 
 

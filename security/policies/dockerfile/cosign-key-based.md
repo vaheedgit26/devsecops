@@ -1,13 +1,13 @@
 ## Key Based Signing  
 1. Sign the Image
 ```bash
-cosign sign \
+cosign sign --yes \
 --key cosign.key \
 123456789.dkr.ecr.us-east-1.amazonaws.com/backend@sha256:xxxx
 ```
 2. Generate SBOM
 ```bash
-trivy image --yes \
+trivy image \
 --format cyclonedx \
 --output sbom.json \
 $IMAGE

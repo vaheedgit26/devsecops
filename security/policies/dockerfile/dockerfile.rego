@@ -1,8 +1,8 @@
 package dockerfile.security
 
-# ------------------------------
+# ==========================================================
 # Helper functions
-# ------------------------------
+# ==========================================================
 
 cmd(i) = c {
     c := lower(input[i].Cmd)
@@ -12,9 +12,10 @@ val(i) = v {
     v := lower(concat(" ", input[i].Value))
 }
 
-# ------------------------------
-# 1. Require explicit image tag or digest
-# ------------------------------
+
+# ==========================================================
+# 1. BASE IMAGE MUST HAVE TAG OR DIGEST
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "from"
@@ -25,14 +26,15 @@ deny[msg] {
     not contains(image, "@sha256:")
 
     msg := sprintf(
-        "Line %d: Base image must have explicit tag or digest: %s",
+        "Line %d: Base image must have an explicit tag or digest: %s",
         [i, image]
     )
 }
 
-# ------------------------------
-# 2. Block latest tag
-# ------------------------------
+
+# ==========================================================
+# 2. BLOCK latest TAG
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "from"
@@ -47,9 +49,10 @@ deny[msg] {
     )
 }
 
-# ------------------------------
-# 3. Require USER
-# ------------------------------
+
+# ==========================================================
+# 3. USER MUST BE DEFINED
+# ==========================================================
 
 deny[msg] {
     not any_user_defined
@@ -63,9 +66,10 @@ any_user_defined {
     cmd(i) == "user"
 }
 
-# ------------------------------
-# 4. Prevent root user explicitly
-# ------------------------------
+
+# ==========================================================
+# 4. PREVENT EXPLICIT ROOT USER
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "user"
@@ -77,14 +81,15 @@ deny[msg] {
     or startswith(user, "0:")
 
     msg := sprintf(
-        "Line %d: Avoid running as root user",
-        [i]
+        "Line %d: Avoid running as root user: %s",
+        [i, user]
     )
 }
 
-# ------------------------------
-# 5. Prevent curl | bash
-# ------------------------------
+
+# ==========================================================
+# 5. BLOCK curl | bash
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "run"
@@ -101,9 +106,10 @@ deny[msg] {
     )
 }
 
-# ------------------------------
-# 6. Avoid ADD
-# ------------------------------
+
+# ==========================================================
+# 6. AVOID ADD
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "add"
@@ -114,9 +120,10 @@ deny[msg] {
     )
 }
 
-# ------------------------------
-# 7. Avoid sudo
-# ------------------------------
+
+# ==========================================================
+# 7. AVOID sudo
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "run"
@@ -124,14 +131,15 @@ deny[msg] {
     contains(val(i), "sudo")
 
     msg := sprintf(
-        "Line %d: Avoid using sudo",
+        "Line %d: Avoid using sudo in containers",
         [i]
     )
 }
 
-# ------------------------------
-# 8. Apt hygiene
-# ------------------------------
+
+# ==========================================================
+# 8. APT CACHE MUST BE CLEANED
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "run"
@@ -142,14 +150,15 @@ deny[msg] {
     not contains(line, "rm -rf /var/lib/apt/lists")
 
     msg := sprintf(
-        "Line %d: Clean apt cache after install",
+        "Line %d: Clean apt cache after package installation",
         [i]
     )
 }
 
-# ------------------------------
-# 9. Avoid apt-get upgrade
-# ------------------------------
+
+# ==========================================================
+# 9. AVOID apt-get upgrade
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "run"
@@ -157,14 +166,15 @@ deny[msg] {
     contains(val(i), "apt-get upgrade")
 
     msg := sprintf(
-        "Line %d: Avoid apt-get upgrade",
+        "Line %d: Avoid apt-get upgrade because it reduces build reproducibility",
         [i]
     )
 }
 
-# ------------------------------
-# 10. Ensure WORKDIR exists
-# ------------------------------
+
+# ==========================================================
+# 10. WORKDIR SHOULD EXIST
+# ==========================================================
 
 warn[msg] {
     not workdir_defined
@@ -178,9 +188,10 @@ workdir_defined {
     cmd(i) == "workdir"
 }
 
-# ------------------------------
-# 11. Avoid cd
-# ------------------------------
+
+# ==========================================================
+# 11. AVOID cd
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "run"
@@ -193,23 +204,25 @@ deny[msg] {
     )
 }
 
-# ------------------------------
-# 12. Multi-stage recommendation
-# ------------------------------
+
+# ==========================================================
+# 12. MULTI-STAGE BUILD RECOMMENDATION
+# ==========================================================
 
 warn[msg] {
     count(froms) < 2
 
-    msg := "Consider using multi-stage builds"
+    msg := "Consider using a multi-stage Docker build to reduce image size"
 }
 
 froms[i] {
     cmd(i) == "from"
 }
 
-# ------------------------------
-# 13. Detect secrets in ENV
-# ------------------------------
+
+# ==========================================================
+# 13. DETECT POSSIBLE SECRETS IN ENV
+# ==========================================================
 
 deny[msg] {
     cmd(i) == "env"
@@ -220,7 +233,7 @@ deny[msg] {
     )
 
     msg := sprintf(
-        "Line %d: Possible secret in ENV",
+        "Line %d: Possible secret detected in ENV instruction",
         [i]
     )
 }

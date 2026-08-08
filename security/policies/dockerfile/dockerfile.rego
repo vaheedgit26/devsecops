@@ -76,13 +76,22 @@ deny[msg] {
 # ---------------------------------
 
 deny[msg] {
+  cmd(i) == "add"
+  msg := sprintf("Line %d: Use COPY instead of ADD", [i])
+}
+
+# ---------------------------------
+# 7. Avoid sudo
+#__________________________________
+
+deny[msg] {
   cmd(i) == "run"
   contains(lower(val(i)), "sudo")
   msg := sprintf("Line %d: Avoid using sudo in containers", [i])
 }
 
 # ----------------------------------
-# 7. Package manager hygiene (apt)
+# 8. Package manager hygiene (apt)
 # ----------------------------------
 
 deny[msg] {
@@ -96,7 +105,7 @@ deny[msg] {
 }
 
 # -------------------------------------------
-# 8. Avoid upgrade (breaks reproducibility)
+# 9. Avoid upgrade (breaks reproducibility)
 # -------------------------------------------
 
 deny[msg] {
@@ -108,7 +117,7 @@ deny[msg] {
 }
 
 # ----------------------------------
-# 9. Ensure WORKDIR exists
+# 10. Ensure WORKDIR exists
 # ----------------------------------
 
 deny[msg] {
@@ -122,7 +131,7 @@ workdir_defined {
 }
 
 # ----------------------------------
-# 10. Use WORKDIR instead of cd
+# 11. Use WORKDIR instead of cd
 # ----------------------------------
 
 deny[msg] {
@@ -132,7 +141,7 @@ deny[msg] {
 }
 
 # -----------------------------------------------------
-# 11. Multi-stage build recommendation (soft warning)
+# 12. Multi-stage build recommendation (soft warning)
 # -----------------------------------------------------
 
 warn[msg] {
@@ -143,7 +152,3 @@ warn[msg] {
 froms[i] {
   cmd(i) == "from"
 }
-
-
-
-

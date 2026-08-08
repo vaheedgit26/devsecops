@@ -1,12 +1,14 @@
 ## Step 1: Sign Your Image with Cosign    
 **🔹 Option A: Key-based signing (most common in enterprises)**  
+
 **1. Generate key pair**  
 ```bash
 cosign generate-key-pair
 ```
 Creates:  
 - `cosign.key` (private)  
-- `cosign.pub` (public)  
+- `cosign.pub` (public)
+  
 **2. Sign your image (ECR example)**
 ```bash
 cosign sign --yes \

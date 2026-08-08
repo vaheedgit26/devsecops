@@ -167,3 +167,14 @@ warn[msg] {
 froms[i] {
   cmd(i) == "from"
 }
+
+ ----------------------------------
+# 13. Multi-stage recommendation
+# ----------------------------------
+
+deny[msg] {
+  cmd(i) == "env"
+  re_match("(password|secret|token|key)", val(i))
+
+  msg := sprintf("Line %d: Possible secret in ENV", [i])
+}

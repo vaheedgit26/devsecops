@@ -1,29 +1,31 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: deployment-main-container-ecr-only
+  name: enforce-allowed-registries
 spec:
-  # Reject the Deployment if the policy is violated.
   validationFailureAction: Enforce
-
-  # Admission-time enforcement.
-  # Existing resources are not evaluated by background processing.
-  background: false
-
+  background: true
   rules:
-    - name: verify-main-container-ecr
+    - name: restrict-main-container-registries
       match:
         any:
           - resources:
               kinds:
                 - Deployment
+
       validate:
-        message: "The main container image (containers[0]) must come from the approved Amazon ECR registry: 123456789012.dkr.ecr.<region>.amazonaws.com"
-        deny:
-          conditions:
-            any:
-              # Reject if the main container image does not start with the approved ECR registry.
-              - key: "{{ request.object.spec.template.spec.containers[0].image }}"
-                operator: NotMatches
-                value: "^123456789012\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/.+"
-                # value: "123456789012.dkr.ecr.us-east-1.amazonaws.com/*"
+        message: >-
+          Deployment main container image must come from approved ECR registries
+          (123456789012.dkr.ecr.us-east-1.amazonaws.com,
+           123456789012.dkr.ecr.eu-west-1.amazonaws.com)
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.image }}"
+                    operator: NotMatches
+                    value: >-
+                      ^(123456789012\.dkr\.ecr\.us-east-1\.amazonaws\.com|
+                        123456789012\.dkr\.ecr\.eu-west-1\.amazonaws\.com)/.+

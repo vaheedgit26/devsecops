@@ -6,10 +6,10 @@ cosign generate-key-pair
 ```
 Creates:  
 - `cosign.key` (private)  
-- `cosign.pub` (public)
+- `cosign.pub` (public)  
 **2. Sign your image (ECR example)**
 ```bash
-cosign sign \
+cosign sign --yes \
   --key cosign.key \
   123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app@sha256:<digest>
 ```
@@ -56,7 +56,7 @@ spec:
 ## 🚀 Step 4: (Better) Use Keyless Signing (OIDC / Sigstore)  
 Instead of managing keys manually 👇  
 ```bash
-cosign sign \
+cosign sign --yes \
   --keyless \
   123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app@sha256:<digest>
 ```

@@ -1,7 +1,7 @@
 package dockerfile.security
 
 # ------------------------------
-# Helper: normalize command
+# Helper functions
 # ------------------------------
 
 cmd(i) = c {
@@ -13,7 +13,7 @@ val(i) = v {
 }
 
 # ------------------------------
-# 1. Block implicit latest
+# 1. Require explicit image tag or digest
 # ------------------------------
 
 deny[msg] {
@@ -40,7 +40,7 @@ deny[msg] {
 }
 
 # ------------------------------
-# 3. Do not run as root (implicit)
+# 3. Require USER (no implicit root)
 # ------------------------------
 
 deny[msg] {
@@ -61,9 +61,9 @@ deny[msg] {
   cmd(i) == "user"
   user := lower(input[i].Value[0])
 
-  user == "root"
-  or startswith(user, "0")
-  or contains(user, ":0")
+  user == "root" 
+  or user == "0"
+  or startswith(user, "0:")
 
   msg := sprintf("Line %d: Avoid running as root user", [i])
 }
@@ -104,7 +104,7 @@ deny[msg] {
 }
 
 # ----------------------------------
-# 8. Apt hygiene
+# 8. Apt hygiene (cleanup)
 # ----------------------------------
 
 deny[msg] {
@@ -114,24 +114,22 @@ deny[msg] {
   contains(line, "apt-get install")
   not contains(line, "rm -rf /var/lib/apt/lists")
 
-  msg := sprintf("Line %d: Clean apt cache", [i])
+  msg := sprintf("Line %d: Clean apt cache after install", [i])
 }
 
 # -------------------------------------------
-# 9. Avoid upgrade
+# 9. Avoid apt upgrade
 # -------------------------------------------
 
 deny[msg] {
   cmd(i) == "run"
-  line := val(i)
-
-  contains(line, "apt-get upgrade")
+  contains(val(i), "apt-get upgrade")
 
   msg := sprintf("Line %d: Avoid apt-get upgrade", [i])
 }
 
 # ----------------------------------
-# 10. Ensure WORKDIR exists (warn)
+# 10. Ensure WORKDIR exists
 # ----------------------------------
 
 warn[msg] {
@@ -168,13 +166,13 @@ froms[i] {
   cmd(i) == "from"
 }
 
- ----------------------------------
-# 13. Multi-stage recommendation
+# ----------------------------------
+# 13. Detect secrets in ENV
 # ----------------------------------
 
 deny[msg] {
   cmd(i) == "env"
-  re_match("(password|secret|token|key)", val(i))
+  re_match("(?i)(password|passwd|secret|token|api[_-]?key|access[_-]?key|auth|credential)", val(i))
 
   msg := sprintf("Line %d: Possible secret in ENV", [i])
 }

@@ -1,31 +1,20 @@
 # This checks Deployment main container image must come from ECR only 
-
 package kubernetes.security
-#################################################
-# Allowed ECR Registry
-#################################################
-
-allowed_registry := "123456789012.dkr.ecr.us-east-1.amazonaws.com"
-
-#allowed_registries := [
-#    "123456789012.dkr.ecr.us-east-1.amazonaws.com",
-#    "docker.io"
-#]
-
-#################################################
-# Check only Deployment resources
-#################################################
 
 deny[msg] {
     input.kind == "Deployment"
-    image := input.spec.template.spec.containers[0].image
-    not startswith(image, allowed_registry)
+    container := input.spec.template.spec.containers[0]
+    image := container.image
+
+    # Regex match for full ECR format
+    not re_match("^123456789012\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/.+", image)
+
     msg := sprintf(
-        "Deployment '%s' main container image '%s' must come from ECR registry '%s'",
+        "Deployment %s main container %s image '%s' must come from ECR",
         [
             input.metadata.name,
-            image,
-            allowed_registry
+            container.name,
+            image
         ]
     )
 }

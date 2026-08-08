@@ -1,0 +1,72 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-main-container-probes
+  annotations:
+    policies.kyverno.io/title: Require Liveness and Readiness Probes
+    policies.kyverno.io/category: Reliability
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      Requires the main application container of every Deployment to define
+      both liveness and readiness probes.
+
+spec:
+  # Reject Deployments that violate the policy
+  validationFailureAction: Enforce
+
+  # Enforce only during admission.
+  # Existing Deployments are not evaluated in the background.
+  background: false
+
+  rules:
+    # ==========================================================
+    # LIVENESS PROBE
+    # ==========================================================
+    - name: require-main-container-liveness-probe
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: "Deployment main container must define a livenessProbe."
+          
+
+        foreach:
+          # containers[0] = main application container
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.livenessProbe || '' }}"
+                    operator: Equals
+                    value: ""
+                    
+    # ==========================================================
+    # READINESS PROBE
+    # ==========================================================
+
+    - name: require-main-container-readiness-probe
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: "Deployment main container must define a readinessProbe."
+
+        foreach:
+          # containers[0] = main application container
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.readinessProbe || '' }}"
+                    operator: Equals
+                    value: ""

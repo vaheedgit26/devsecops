@@ -1,0 +1,275 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+
+metadata:
+  name: enforce-main-container-resources
+
+spec:
+  # Reject Deployments that violate the policy
+  validationFailureAction: Enforce
+
+  # Enforce during admission; don't scan existing resources
+  # in the background.
+  background: false
+
+  rules:
+
+    # ==========================================================
+    # CPU REQUEST - REQUIRED
+    # ==========================================================
+
+    - name: require-main-container-cpu-request
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container must define a CPU request.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.resources.requests.cpu || '' }}"
+                    operator: Equals
+                    value: ""
+
+    # ==========================================================
+    # CPU REQUEST - MINIMUM 50m
+    # ==========================================================
+
+    - name: enforce-main-container-cpu-request-minimum
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container CPU request must be at least 50m.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.resources.requests.cpu }}"
+                    operator: LessThan
+                    value: "50m"
+
+    # ==========================================================
+    # CPU REQUEST - MAXIMUM 500m
+    # ==========================================================
+
+    - name: enforce-main-container-cpu-request-maximum
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container CPU request must not exceed 500m.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.resources.requests.cpu }}"
+                    operator: GreaterThan
+                    value: "500m"
+
+    # ==========================================================
+    # MEMORY REQUEST - REQUIRED
+    # ==========================================================
+
+    - name: require-main-container-memory-request
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container must define a memory request.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.resources.requests.memory || '' }}"
+                    operator: Equals
+                    value: ""
+
+    # ==========================================================
+    # MEMORY REQUEST - MINIMUM 64Mi
+    # ==========================================================
+
+    - name: enforce-main-container-memory-request-minimum
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container memory request must be at least 64Mi.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.resources.requests.memory }}"
+                    operator: LessThan
+                    value: "64Mi"
+
+    # ==========================================================
+    # MEMORY REQUEST - MAXIMUM 512Mi
+    # ==========================================================
+
+    - name: enforce-main-container-memory-request-maximum
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container memory request must not exceed 512Mi.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.resources.requests.memory }}"
+                    operator: GreaterThan
+                    value: "512Mi"
+
+    # ==========================================================
+    # CPU LIMIT - REQUIRED
+    # ==========================================================
+
+    - name: require-main-container-cpu-limit
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container must define a CPU limit.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.resources.limits.cpu || '' }}"
+                    operator: Equals
+                    value: ""
+
+    # ==========================================================
+    # CPU LIMIT - MAXIMUM 500m
+    # ==========================================================
+
+    - name: enforce-main-container-cpu-limit-maximum
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container CPU limit must not exceed 500m.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.resources.limits.cpu }}"
+                    operator: GreaterThan
+                    value: "500m"
+
+    # ==========================================================
+    # MEMORY LIMIT - REQUIRED
+    # ==========================================================
+
+    - name: require-main-container-memory-limit
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container must define a memory limit.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.resources.limits.memory || '' }}"
+                    operator: Equals
+                    value: ""
+
+    # ==========================================================
+    # MEMORY LIMIT - MAXIMUM 512Mi
+    # ==========================================================
+
+    - name: enforce-main-container-memory-limit-maximum
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          The Deployment main container memory limit must not exceed 512Mi.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.resources.limits.memory }}"
+                    operator: GreaterThan
+                    value: "512Mi"

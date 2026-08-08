@@ -1,0 +1,247 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+
+metadata:
+  name: enforce-main-container-security-context
+
+  annotations:
+    policies.kyverno.io/title: Enforce Main Container Security Context
+    policies.kyverno.io/category: Pod Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Requires the main application container of every Deployment to define
+      a container-level securityContext with a non-root UID and GID,
+      runAsNonRoot enabled, a read-only root filesystem, privilege
+      escalation disabled, and all Linux capabilities dropped.
+
+spec:
+  # Reject non-compliant Deployments
+  validationFailureAction: Enforce
+
+  # Enforce only on CREATE/UPDATE admission.
+  # Existing resources are not evaluated in the background.
+  background: false
+
+  rules:
+
+    # ==========================================================
+    # 1. SECURITY CONTEXT MUST EXIST
+    # ==========================================================
+
+    - name: require-main-container-security-context
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          Deployment main container must define a container-level
+          securityContext.
+
+        foreach:
+          # containers[0] = main application container
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+
+                  - key: "{{ element.securityContext || '' }}"
+                    operator: Equals
+                    value: ""
+
+    # ==========================================================
+    # 2. runAsUser > 0
+    # ==========================================================
+
+    - name: enforce-main-container-run-as-user
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          Deployment main container securityContext.runAsUser must
+          be greater than 0.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+
+                  # Missing runAsUser
+                  - key: "{{ element.securityContext.runAsUser || '' }}"
+                    operator: Equals
+                    value: ""
+
+                  # runAsUser must not be 0 or negative
+                  - key: "{{ element.securityContext.runAsUser }}"
+                    operator: LessThanOrEquals
+                    value: 0
+
+    # ==========================================================
+    # 3. runAsGroup > 0
+    # ==========================================================
+
+    - name: enforce-main-container-run-as-group
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          Deployment main container securityContext.runAsGroup must
+          be greater than 0.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+
+                  # Missing runAsGroup
+                  - key: "{{ element.securityContext.runAsGroup || '' }}"
+                    operator: Equals
+                    value: ""
+
+                  # runAsGroup must not be 0 or negative
+                  - key: "{{ element.securityContext.runAsGroup }}"
+                    operator: LessThanOrEquals
+                    value: 0
+
+    # ==========================================================
+    # 4. runAsNonRoot MUST BE TRUE
+    # ==========================================================
+
+    - name: enforce-main-container-run-as-non-root
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          Deployment main container securityContext.runAsNonRoot
+          must be true.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+
+                  - key: "{{ element.securityContext.runAsNonRoot || false }}"
+                    operator: NotEquals
+                    value: true
+
+    # ==========================================================
+    # 5. readOnlyRootFilesystem MUST BE TRUE
+    # ==========================================================
+
+    - name: enforce-main-container-read-only-root-filesystem
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          Deployment main container securityContext.readOnlyRootFilesystem
+          must be true.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+
+                  - key: "{{ element.securityContext.readOnlyRootFilesystem || false }}"
+                    operator: NotEquals
+                    value: true
+
+    # ==========================================================
+    # 6. allowPrivilegeEscalation MUST BE FALSE
+    # ==========================================================
+
+    - name: enforce-main-container-no-privilege-escalation
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          Deployment main container securityContext.allowPrivilegeEscalation
+          must be false.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+
+                  # Missing value is treated as non-compliant
+                  - key: "{{ element.securityContext.allowPrivilegeEscalation || true }}"
+                    operator: NotEquals
+                    value: false
+
+    # ==========================================================
+    # 7. capabilities.drop MUST CONTAIN ALL
+    # ==========================================================
+
+    - name: enforce-main-container-drop-all-capabilities
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: >-
+          Deployment main container securityContext.capabilities.drop
+          must contain ALL.
+
+        foreach:
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+
+                  # capabilities must exist
+                  - key: "{{ element.securityContext.capabilities || '' }}"
+                    operator: Equals
+                    value: ""
+
+                  # capabilities.drop must exist
+                  - key: "{{ element.securityContext.capabilities.drop || '' }}"
+                    operator: Equals
+                    value: ""
+
+                  # ALL must be present
+                  - key: "{{ element.securityContext.capabilities.drop }}"
+                    operator: AnyNotIn
+                    value:
+                      - ALL

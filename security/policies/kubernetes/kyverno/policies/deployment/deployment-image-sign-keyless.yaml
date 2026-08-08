@@ -1,0 +1,133 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+
+metadata:
+  name: enforce-main-container-image-signature
+
+  annotations:
+    policies.kyverno.io/title: Enforce Main Container Image Signature
+    policies.kyverno.io/category: Software Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Deployment
+    policies.kyverno.io/description: >-
+      Requires the main application container image of every Deployment
+      to be immutable and cryptographically signed using either an approved
+      Cosign key-based signing key or an approved Cosign keyless GitHub
+      Actions identity.
+
+spec:
+
+  # ----------------------------------------------------------
+  # Enforce failed image verification
+  # ----------------------------------------------------------
+
+  validationFailureAction: Enforce
+
+  # ----------------------------------------------------------
+  # Do not evaluate existing resources in background scans.
+  # Enforcement occurs during admission.
+  # ----------------------------------------------------------
+
+  background: false
+
+  # ----------------------------------------------------------
+  # Give Kyverno enough time to contact ECR, Rekor and
+  # other signature infrastructure.
+  # ----------------------------------------------------------
+
+  webhookConfiguration:
+    timeoutSeconds: 30
+
+  rules:
+                   
+    # ==========================================================
+    # KEYLESS COSIGN SIGNATURE
+    #
+    # Main container image must:
+    #
+    #   1. Come from ECR
+    #   2. Use an image digest
+    #   3. Have a valid Cosign keyless signature
+    #   4. Be signed by the approved GitHub Actions identity
+    # ==========================================================
+
+    - name: verify-main-container-keyless-signature
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      verifyImages:
+
+        # ------------------------------------------------------
+        # ECR images
+        # ------------------------------------------------------
+
+        - imageReferences:
+            - "123456789012.dkr.ecr.us-east-1.amazonaws.com/*"
+
+          # ----------------------------------------------------
+          # Enforce failed verification
+          # ----------------------------------------------------
+
+          failureAction: Enforce
+
+          # ----------------------------------------------------
+          # Require immutable digest reference
+          # ----------------------------------------------------
+
+          verifyDigest: true
+
+          # ----------------------------------------------------
+          # Deployment must already contain the digest.
+          # ----------------------------------------------------
+
+          mutateDigest: false
+
+          # ----------------------------------------------------
+          # Require one valid keyless attestor.
+          # ----------------------------------------------------
+
+          attestors:
+
+            - count: 1
+
+              entries:
+
+                # ------------------------------------------------
+                # COSIGN KEYLESS VERIFICATION
+                # ------------------------------------------------
+
+                - keyless:
+
+                    # ------------------------------------------------
+                    # GitHub Actions OIDC issuer
+                    # ------------------------------------------------
+
+                    issuer: "https://token.actions.githubusercontent.com"
+
+                    # ------------------------------------------------
+                    # IMPORTANT:
+                    #
+                    # Replace YOUR_GITHUB_ORG/YOUR_REPO with the
+                    # repository which is allowed to sign images.
+                    #
+                    # Example:
+                    #
+                    # https://github.com/myorg/myrepo/.github/workflows/build-sign.yml@refs/heads/main
+                    #
+                    # ------------------------------------------------
+
+                    subject: "https://github.com/YOUR_GITHUB_ORG/YOUR_REPO/.github/workflows/build-sign.yml@refs/heads/main"
+
+                    # ------------------------------------------------
+                    # Rekor transparency log.
+                    #
+                    # Keeping this enabled is recommended for
+                    # production verification.
+                    # ------------------------------------------------
+
+                    rekor:
+                      url: "https://rekor.sigstore.dev"

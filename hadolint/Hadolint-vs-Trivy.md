@@ -415,13 +415,9 @@ Since you're building an **EKS + DevSecOps + Cosign + Kyverno** architecture, I'
 In short:  
 
 > **Hadolint = Dockerfile quality**  
-
 > **Trivy = security**  
-
 > **OPA/Conftest = organization policy**  
-
 > **Cosign = supply-chain identity/integrity**  
-
 > **Kyverno = Kubernetes admission enforcement**  
 
 

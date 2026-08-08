@@ -1,0 +1,64 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-main-container-resources
+spec:
+  # Reject Deployments that violate the policy
+  validationFailureAction: Enforce
+
+  # Do not evaluate already-existing resources in the background.
+  # Enforcement happens when the Deployment is created/updated.
+  background: false
+
+  rules:
+
+    - name: require-main-container-resources
+
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      validate:
+        message: "The Deployment main container must define CPU and memory requests and limits."
+
+        foreach:
+          # containers[0] = main application container
+          - list: "request.object.spec.template.spec.containers[0]"
+
+            deny:
+              conditions:
+                any:
+
+                  # ----------------------------------------
+                  # CPU REQUEST
+                  # ----------------------------------------
+
+                  - key: "{{ element.resources.requests.cpu || '' }}"
+                    operator: Equals
+                    value: ""
+
+                  # ----------------------------------------
+                  # MEMORY REQUEST
+                  # ----------------------------------------
+
+                  - key: "{{ element.resources.requests.memory || '' }}"
+                    operator: Equals
+                    value: ""
+
+                  # ----------------------------------------
+                  # CPU LIMIT
+                  # ----------------------------------------
+
+                  - key: "{{ element.resources.limits.cpu || '' }}"
+                    operator: Equals
+                    value: ""
+
+                  # ----------------------------------------
+                  # MEMORY LIMIT
+                  # ----------------------------------------
+
+                  - key: "{{ element.resources.limits.memory || '' }}"
+                    operator: Equals
+                    value: ""

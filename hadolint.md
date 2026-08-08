@@ -88,4 +88,5 @@ for Hadolint, and:
 ```bash
 --exit-code 1
 ```
-> This is the approach I'd recommend for your EKS project: fail early with Hadolint, then build, scan the actual image with Trivy, sign it with Cosign, push to ECR, and finally let Kyverno enforce the rules at cluster admission.
+for Trivy.  
+> This is the approach I'd recommend for your EKS project: fail early with Hadolint, scan with opa conftest for organization specific custom configuration,then build, scan the actual image with Trivy, sign it with Cosign, push to ECR, and finally let Kyverno enforce the rules at cluster admission.

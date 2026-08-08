@@ -7,7 +7,7 @@ package kubernetes.security
 #   Deployment
 #
 # Checks ONLY:
-#   spec.template.spec.containers[0]
+#   spec.template.spec.containers[0]    (only main container)
 #
 # Requirements:
 #   1. securityContext must exist

@@ -52,7 +52,8 @@ any_user_defined {
 
 deny[msg] {
   cmd(i) == "user"
-  val(i) == "root"
+  user := lower(input[i].Value[0])
+  user == "root" or user == "0"
   msg := sprintf("Line %d: Avoid running as root user", [i])
 }
 

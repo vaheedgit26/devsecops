@@ -1,4 +1,4 @@
-**When PR is created**
+**When PR is created:**
 ```text
 PR
  │

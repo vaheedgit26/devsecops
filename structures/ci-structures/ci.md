@@ -44,59 +44,67 @@
                     OS packages   App dependencies  Config
                                        │
                                        ▼
-                              CycloneDX SBOM
+                                  SECURITY GATE
                                        │
-                                       ▼
-                              Cosign Image Sign
-                                       │
-                                       ▼
-                              Cosign SBOM Attest
-                                       │
-                                       ▼
-                                  Push to ECR
-                                       │
-                                       ▼
-                              Get Image Digest
-                                       │
-                                       ▼
-                          Update Helm values.yaml
-                          image.repository + digest
-                                       │
-                                       ▼
-                                   Git commit
-                                       │
-                                       ▼
-                                  GitOps repo
-                                       │
-                                       ▼
-                                   Argo CD
-                                       │
-                                       ▼
-                              Kubernetes manifests
-                                       │
-                                       ▼
-                                    EKS API
-                                       │
-                                       ▼
-                                    KYVERNO
-                                       │
-                       ┌───────────────┼────────────────┐
-                       ▼               ▼                ▼
-                 ECR image?       Digest used?     Image signed?
-                       │               │                │
-                       └───────────────┼────────────────┘
-                                       ▼
-                                SBOM attestation?
-                                       │
-                              ┌────────┴────────┐
-                              │                 │
-                             FAIL             PASS
-                              │                 │
-                              ▼                 ▼
-                         Pod rejected       Pod admitted
-                                                │
+                             ┌─────────┴─────────┐
+                             │                   │
+                            FAIL               PASS
+                             │                   │
+                             ▼                   ▼
+                            STOP             ECR Push
+                                                 │
+                                                 ▼
+                                         Get Image Digest
+                                                 │
+                                                 ▼
+                                         Cosign Image Sign
+                                                 │
+                                                 ▼
+                                          Generate SBOM
+                                         (CycloneDX SBOM)
+                                                 │
+                                                 ▼
+                                       Cosign SBOM Attestation
+                                                 │
+                                                 ▼
+                                     Update Helm values.yaml
+                                   (image.repository + digest)
+                                                 │
+                                                 ▼
+                                            Git commit
+                                                 │
+                                                 ▼
+                                           GitOps repo
+                                                 │
+                                                 ▼
+                                              Argo CD
+                                                 │
+                                                 ▼
+                                        Kubernetes manifests
+                                                 │
+                                                 ▼
+                                              EKS API
+                                                 │
+                                                 ▼
+                                              KYVERNO
+                                                 │
+                                 ┌───────────────┼────────────────┐
+                                 ▼               ▼                ▼
+                           ECR image?       Digest used?     Image signed?
+                                │               │                │
+                                └───────────────┼────────────────┘
                                                 ▼
-                                          EKS Pod Running
+                                        SBOM attestation?
+                                                │
+                                       ┌────────┴────────┐
+                                       │                 │
+                                      FAIL             PASS
+                                       │                 │
+                                       ▼                 ▼
+                                 Pod rejected       Pod admitted
+                                                         │
+                                                         ▼
+                                                  EKS Pod Running
 ```
 **That gives Kyverno a very strong deployment-time rule:**  
 > **I will only allow this ECR image if:**  

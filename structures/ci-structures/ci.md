@@ -23,7 +23,8 @@
              SCA           Secrets          IaC
                              │
                              ▼
-                       SECURITY GATE ( Status checks at Github Repo level )
+                       SECURITY GATE
+           ( Status checks at Github Repo level )
                              │
                    ┌─────────┴─────────┐
                    │                   │
@@ -62,7 +63,7 @@
                           image.repository + digest
                                        │
                                        ▼
-                                   Git commit ( GitOps Repo )
+                                   Git commit
                                        │
                                        ▼
                                   GitOps repo

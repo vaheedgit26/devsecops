@@ -20,7 +20,7 @@
                              │
               ┌──────────────┼──────────────┐
               ▼              ▼              ▼
-             SCA           Secrets          IaC
+             SCA           Secrets         IaC
                              │
                              ▼
                        SECURITY GATE

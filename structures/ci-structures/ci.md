@@ -99,10 +99,10 @@
                                           EKS Pod Running
 ```
 **That gives Kyverno a very strong deployment-time rule:**  
-> **"I will only allow this ECR image if  
-> - The exact digest is used  
-> - The exact digest has a trusted Cosign signature  
-> - The exact digest has the required CycloneDX SBOM attestation."**   
+> **"I will only allow this ECR image if**  
+> - **The exact digest is used**  
+> - **The exact digest has a trusted Cosign signature**  
+> - **The exact digest has the required CycloneDX SBOM attestation."**   
 
 ## File Structure:  
 ```text

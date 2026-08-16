@@ -24,7 +24,7 @@
                              │
                              ▼
                        SECURITY GATE
-           ( Status checks at Github Repo level )
+            (Status checks at Github Repo level)
                              │
                    ┌─────────┴─────────┐
                    │                   │

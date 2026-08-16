@@ -1,4 +1,4 @@
-## 2. CI Pipeline
+## CI Pipeline
 ```text
                          DEVELOPER
                              │

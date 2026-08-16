@@ -15,7 +15,7 @@ PR
        ├── secrets
        └── dependency vulnerabilities
 ```
-**After PR Merged:**
+**After PR merged:**
 ```text
 Build Docker image
        │

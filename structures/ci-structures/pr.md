@@ -1,3 +1,4 @@
+**When PR is created**
 ```text
 PR
  │
@@ -13,4 +14,15 @@ PR
        ├── IaC
        ├── secrets
        └── dependency vulnerabilities
+```
+**After PR Merged:**
+```text
+Build Docker image
+       │
+       ▼
+Trivy image
+       │
+       ├── OS vulnerabilities
+       ├── Application dependencies
+       └── Image contents
 ```

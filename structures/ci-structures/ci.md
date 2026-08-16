@@ -17,7 +17,7 @@
             SCA         Secrets      IaC
                           │
                           ▼
-                     PR Security
+                     PR Security ( Status checks at Github repo level )
                           │
                           ▼
                         MERGE

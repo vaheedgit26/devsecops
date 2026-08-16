@@ -80,10 +80,10 @@
                                                  Check Kubernetes Manifests
                                          ┌----------───────┴-───────---------─┐
                                          │                                    │
-                                         FAIL                                PASS
-                                                                              │
-                                                                              ▼
-                                                                          Git commit
+                                        FAIL                                PASS
+                                         │                                    │
+                                         ▼                                    ▼
+                                      ❌ STOP                             Git commit
                                                                               │
                                                                               ▼
                                                                          GitOps repo

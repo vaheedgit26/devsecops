@@ -1,4 +1,4 @@
-## CI Pipeline
+## CI Pipeline:  
 ```text
                          DEVELOPER
                              │
@@ -97,4 +97,35 @@
                                                 │
                                                 ▼
                                           EKS Pod Running
+```
+
+## File Structure:  
+```text
+repo/
+├── .github/
+│   └── workflows/
+│       ├── pr-security.yml
+│       └── build-publish.yml
+│
+├── services/
+│   ├── backend/
+│   │   ├── pom.xml
+│   │   ├── Dockerfile
+│   │   └── src/
+│   │
+│   └── product/
+│       ├── pom.xml
+│       ├── Dockerfile
+│       └── src/
+│
+├── helm/
+│   └── backend/
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       └── templates/
+│
+├── policies/
+│   └── kyverno/
+│
+└── terraform/
 ```

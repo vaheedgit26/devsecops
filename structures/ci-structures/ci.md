@@ -90,11 +90,11 @@
                                        │
                               ┌────────┴────────┐
                               │                 │
-                            PASS              FAIL
+                             FAIL             PASS
                               │                 │
                               ▼                 ▼
-                         Pod admitted       Pod rejected
-                              │
-                              ▼
-                           EKS Pod
+                         Pod rejected       Pod admitted
+                                                │
+                                                ▼
+                                          EKS Pod Running
 ```

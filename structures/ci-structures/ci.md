@@ -36,14 +36,3 @@
                           ▼
                          ECR
 ```
-**After PR merged:**
- ```text
-Build Docker image
-        │
-        ▼
-Trivy image
-        │
-        ├── OS vulnerabilities
-        ├── Application dependencies
-        └── Image contents
-```

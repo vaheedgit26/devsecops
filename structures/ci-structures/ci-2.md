@@ -109,21 +109,19 @@
                                                                             ▼
                                                                        KYVERNO
                                                                             │
-                                             ┌──────────────────────────────┼──────────────────┐
-                                             │                              │                  │
-                                             ▼                              ▼                  ▼
-                                         ECR image?                    Digest used?       Image signed?
-                                                                                              │
-                                                                                              ▼
-                                                                                       SBOM attestation?
-                                                                                              │
-                                                                                   ┌──────────┴─────────┐
-                                                                                   │                    │
-                                                                                  FAIL                 PASS
-                                                                                   │                    │
-                                                                                   ▼                    ▼
-                                                                            ❌ Pod rejected       Pod admitted
-                                                                                                      │
-                                                                                                      ▼
-                                                                                                 EKS Pod
+                                            ┌─────────────────────┌───────────────┐-----------------------┐
+                                            │                     │               │                       │
+                                            ▼                     ▼               ▼                       ▼
+                                         ECR image?        Digest used?       Image signed?         SBOM attestation?
+                                            │                                                             │
+                                            └────────────────────────────────────────────────────────────-┘                                                                                                                                                            │
+                                                                ┌──────────┴─────────┐
+                                                                │                    │
+                                                               FAIL                 PASS
+                                                                │                    │
+                                                                ▼                    ▼
+                                                          ❌ Pod rejected       Pod admitted
+                                                                                     │
+                                                                                     ▼
+                                                                                  EKS Pod
 ```

@@ -31,7 +31,7 @@
                   FAIL                PASS
                    │                   │
                    ▼                   ▼
-                ❌ STOP          Check Dockerfile
+                ❌ STOP          Check Dockerfile (Hadolint + Trivy)
                              ┌─────────┴─────────┐
                              │                   │
                             FAIL                PASS
@@ -77,7 +77,7 @@
                                                (image.repository + digest)
                                                            │
                                                            ▼
-                                                 Check Kubernetes Manifests
+                                                 Check Kubernetes Manifests (Trivy)
                                          ┌----------───────┴-───────---------─┐
                                          │                                    │
                                         FAIL                                PASS

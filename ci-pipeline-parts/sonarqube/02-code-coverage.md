@@ -15,15 +15,6 @@ sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 ```
 `pom.xml` 
 ```xml
-<properties>
-    <sonar.projectKey>company-product-service</sonar.projectKey>
-    <sonar.projectName>Product Service</sonar.projectName>
-
-    <sonar.coverage.jacoco.xmlReportPaths>
-        target/site/jacoco/jacoco.xml
-    </sonar.coverage.jacoco.xmlReportPaths>
-</properties>
-
 <build>
     <plugins>
 

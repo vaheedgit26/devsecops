@@ -102,13 +102,38 @@ Create: `sonar-project.properties`
 ```properties
 sonar.projectKey=company-notification-service
 sonar.projectName=Notification Service
-
 sonar.sources=src
-
 sonar.javascript.lcov.reportPaths=coverage/lcov.info
 ```
 
-
+## 3. Python  
+Assume:  
+```text
+Python 3.12
+pytest
+coverage.py
+```
+Install:  
+```bash
+pip install pytest coverage
+```
+Run:  
+```bash
+coverage run -m pytest
+coverage xml
+```
+This produces:  
+```text
+coverage.xml
+```
+Then:  
+```properties
+sonar.projectKey=company-user-service
+sonar.projectName=User Service
+sonar.sources=src
+sonar.python.coverage.reportPaths=coverage.xml
+```
+SonarQube expects Python coverage in **Cobertura XML** format. `coverage xml` is the standard way to generate it.
 
 
 

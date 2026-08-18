@@ -63,6 +63,72 @@ target/
 ```
 **SonarQube uses `jacoco.xml`, not `jacoco.exec`**. SonarSource specifically notes that JaCoCo XML is the supported format for coverage import; the old binary `.exec` property is deprecated.
 
+## Java - GitHub Actions workflow  
+```yaml
+name: Java - SonarQube
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: sonar-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  sonarqube:
+
+    name: Build, Test and SonarQube
+
+    runs-on: self-hosted
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Verify Java and Maven
+        run: |
+          java -version
+          mvn -version
+
+      - name: Build and test with coverage
+        run: |
+          mvn --batch-mode --no-transfer-progress clean verify
+
+      - name: Verify JaCoCo report
+        run: |
+          test -f target/site/jacoco/jacoco.xml || {
+            echo "ERROR: JaCoCo XML report not found"
+            exit 1
+          }
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+```
+
 ## 2. Node JS  
 Assume:  
 ```text

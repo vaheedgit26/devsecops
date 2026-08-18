@@ -46,3 +46,18 @@ sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
     </plugins>
 </build>
 ```
+Then:  
+```bash
+mvn clean verify
+```
+```text
+produces:  
+target/
+├── jacoco.exec
+└── site/
+    └── jacoco/
+        ├── index.html
+        ├── jacoco.xml
+        └── jacoco.csv
+```
+**SonarQube uses `jacoco.xml`, not `jacoco.exec`**. SonarSource specifically notes that JaCoCo XML is the supported format for coverage import; the old binary `.exec` property is deprecated.

@@ -62,3 +62,61 @@ target/
         └── jacoco.csv
 ```
 **SonarQube uses `jacoco.xml`, not `jacoco.exec`**. SonarSource specifically notes that JaCoCo XML is the supported format for coverage import; the old binary `.exec` property is deprecated.
+
+## 2. Node JS  
+Assume:  
+```text
+Node.js 20
+npm
+Jest
+```
+Install Jest if necessary:   
+```bash
+npm install --save-dev jest
+```
+Your `package.json` should have something like:  
+```json
+{
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  }
+}
+```
+Run:  
+```bash
+npm ci
+npm run test:coverage
+```
+You should get:  
+```text
+coverage/
+└── lcov.info
+```
+SonarQube uses:  
+```text
+coverage/lcov.info
+```
+For JavaScript/TypeScript, SonarQube directly supports LCOV, and `sonar.javascript.lcov.reportPaths` is the current property for both JavaScript and TypeScript.  
+Create: `sonar-project.properties`  
+```properties
+sonar.projectKey=company-notification-service
+sonar.projectName=Notification Service
+
+sonar.sources=src
+
+sonar.javascript.lcov.reportPaths=coverage/lcov.info
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

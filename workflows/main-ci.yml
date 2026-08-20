@@ -19,7 +19,7 @@ jobs:
   # ── 1. Build: Gitleaks · Sonarqube · Sonarqube · Trivy · ECR · Cosign ──
   gitleaks:
     name: Gitleaks
-     uses: ./.github/workflows/gitleaks.yml
+     uses: ./.github/workflows/reusable-gitleaks.yml
     with:
       service-name: backend
       

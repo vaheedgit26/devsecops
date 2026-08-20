@@ -66,7 +66,7 @@ jobs:
         working-directory: ${{ inputs.service-name }}
         run: go build ./...
           
-      # Run CodeQL analysis 
+      # Run CodeQL analysis (Uploads sarif report to Github Security Tab)
       - name: Perform CodeQL Analysis 
         uses: github/codeql-action/analyze@v4 
         with: 

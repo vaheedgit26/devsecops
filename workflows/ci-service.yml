@@ -1,6 +1,12 @@
-name: CICD - GO Services 
+name: Reusable Service CI
 
 on:
+  workflow_call:
+    inputs:
+      service-name:
+        required: true
+        type: string
+  
   push:
     branches: [develop, 'release/**']
       
@@ -17,14 +23,14 @@ jobs:
     name: Gitleaks
     uses: ./.github/workflows/reusable-gitleaks.yml
     with:
-      service-name: ${{ env.SERVICE_NAME }} 
+      service-name: ${{ inputs.service-name }} 
     # secrets: inherit
 
   Sonarqube-Job:
     name: Sonarqube
     uses: ./.github/workflows/reusable-sonarqube.yml
     with:
-      service-name: ${{ env.SERVICE_NAME }} 
+      service-name: ${{ inputs.service-name }} 
       sonar-host-url: ${{ vars.SONAR_HOST_URL }}
             
     secrets:
@@ -34,10 +40,10 @@ jobs:
     name: Trivy Fs Scan
     uses: ./.github/workflows/reusable-trivy-fs.yml
     with:
-      service-name: ${{ env.SERVICE_NAME }} 
+      service-name: ${{ inputs.service-name }}
 
   Codeql-Analysis-Job:
     name: Codeql Analysis
     uses: ./.github/workflows/reusable-codeql.yml
     with:
-      service-name: ${{ env.SERVICE_NAME }} 
+      service-name: ${{ inputs.service-name }}

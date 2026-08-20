@@ -16,10 +16,10 @@ on:
 #   id-token: write
 
 jobs:
-  # ── 1. Build: Gitleaks · Sonarqube · Sonarqube · Trivy · ECR · Cosign ──
-  gitleaks:
+  
+  Gitleaks-Job:
     name: Gitleaks
-     uses: ./.github/workflows/reusable-gitleaks.yml
+    uses: ./.github/workflows/reusable-gitleaks.yml
     with:
       service-name: backend
       
@@ -29,6 +29,19 @@ jobs:
       security-events: write
       
     secrets: inherit
+
+  Sonarqube-Job:
+    name: Sonarqube
+    uses: ./.github/workflows/reusable-sonarqube.yml
+    with:
+      service-name: backend
+      sonar-host-url: ${{ vars.SONAR_HOST_URL }}
+      
+    permissions:
+      contents: read
+      
+    secrets: inherit
+    
 
   # ── 2. Deploy to DEV (direct commit — ArgoCD auto-syncs) ──────────────
   deploy-dev:

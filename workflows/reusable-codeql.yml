@@ -1,0 +1,73 @@
+name: Reusable - Trivy FS Scan
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        required: true
+        type: string
+      
+      runner:
+        description: "Runner label"
+        required: false
+        type: string
+        default: ubuntu-latest
+        
+jobs:
+  Codeql-Analysis-Job:
+    name: CodeQL 
+    runs-on: ${{ inputs.runner }}
+    
+    permissions:
+      contents: read  
+      security-events: write
+      actions: read
+
+    steps:
+      # Checkout Source Code
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.24"
+
+      - name: Create CodeQL configuration
+        run: |
+          cat > codeql-config.yml <<EOF
+          name: Go CodeQL
+          paths:
+            - ${{ inputs.service-name }}
+          EOF
+
+      # Initialize CodeQL
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: go
+          queries: security-extended
+          build-mode: manual
+          config-file: codeql-config.yml
+
+      # Build GO Application automatically
+      # - name: Autobuild 
+      #   uses: github/codeql-action/autobuild@v4
+
+      # Download Go dependencies
+      - name: Download Go dependencies
+        working-directory: ${{ inputs.service-name }}
+        run: go mod download
+
+      # Build Go Application
+      - name: Build Go App manually
+        working-directory: ${{ inputs.service-name }}
+        run: go build ./...
+          
+      # Run CodeQL analysis 
+      - name: Perform CodeQL Analysis 
+        uses: github/codeql-action/analyze@v4 
+        with: 
+          category: "/language:go"

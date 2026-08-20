@@ -1,0 +1,16 @@
+name: CI - Backend
+
+on:
+  push:
+    branches:
+      - develop
+      - 'release/**'
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
+
+jobs:
+  CI:
+    uses: ./.github/workflows/ci-service.yml
+    with:
+      service-name: backend

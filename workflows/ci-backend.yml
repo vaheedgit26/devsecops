@@ -8,20 +8,23 @@ on:
       - 'backend/**'
       - '.github/workflows/ci-backend.yml'
 
+env:
+  SERVICE_NAME: backend
+
 jobs:
   
   Gitleaks-Job:
     name: Gitleaks
     uses: ./.github/workflows/reusable-gitleaks.yml
     with:
-      service-name: backend 
+      service-name: ${{ env.SERVICE_NAME }} 
     # secrets: inherit
 
   Sonarqube-Job:
     name: Sonarqube
     uses: ./.github/workflows/reusable-sonarqube.yml
     with:
-      service-name: backend
+      service-name: ${{ env.SERVICE_NAME }} 
       sonar-host-url: ${{ vars.SONAR_HOST_URL }}
             
     secrets:
@@ -31,4 +34,10 @@ jobs:
     name: Trivy Fs Scan
     uses: ./.github/workflows/reusable-trivy-fs.yml
     with:
-      service-name: backend
+      service-name: ${{ env.SERVICE_NAME }} 
+
+  Codeql-Analysis-Job:
+    name: Codeql Analysis
+    uses: ./.github/workflows/reusable-codeql.yml
+    with:
+      service-name: ${{ env.SERVICE_NAME }} 

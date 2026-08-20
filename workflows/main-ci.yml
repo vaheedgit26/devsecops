@@ -23,12 +23,7 @@ jobs:
     with:
       service-name: backend
       
-    permissions:
-      contents: read
-      pull-requests: read
-      security-events: write
-      
-    secrets: inherit
+    # secrets: inherit
 
   Sonarqube-Job:
     name: Sonarqube
@@ -36,10 +31,7 @@ jobs:
     with:
       service-name: backend
       sonar-host-url: ${{ vars.SONAR_HOST_URL }}
-      
-    permissions:
-      contents: read
-      
+            
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     

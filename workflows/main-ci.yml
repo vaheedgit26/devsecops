@@ -40,7 +40,8 @@ jobs:
     permissions:
       contents: read
       
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     
 
   # ── 2. Deploy to DEV (direct commit — ArgoCD auto-syncs) ──────────────

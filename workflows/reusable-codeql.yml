@@ -1,4 +1,4 @@
-name: Reusable - Trivy FS Scan
+name: Reusable - CodeQL Scan
 
 on:
   workflow_call:

@@ -24,8 +24,7 @@ on:
 jobs:
   Sonarqube:
     name: Sast Sonarqube
-    if: ${{ inputs.sonarqube-scan }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
 
     defaults:
       run:

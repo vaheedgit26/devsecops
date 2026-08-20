@@ -7,16 +7,6 @@ on:
         required: true
         type: string
   
-  push:
-    branches: [develop, 'release/**']
-      
-  paths:
-      - 'backend/**'
-      - '.github/workflows/ci-backend.yml'
-
-env:
-  SERVICE_NAME: backend
-
 jobs:
   
   Gitleaks-Job:

@@ -4,11 +4,12 @@ on:
   workflow_call:
     inputs:
       service-name:
+        description: "Service name"
         required: true
         type: string
 
-      dockerfile-path:
-        description: "Dockerfile with complete path"
+      dockerfile:
+        description: "Path to Dockerfile"
         required: true
         type: string
 
@@ -19,25 +20,29 @@ on:
         default: ubuntu-latest
 
       hadolint-scan:
+        description: "Enable Hadolint Dockerfile scan"
         required: false
         type: boolean
         default: false
-        
+
       trivy-scan:
+        description: "Enable Trivy Dockerfile scan"
         required: false
         type: boolean
         default: false
 
       opa-conftest-scan:
+        description: "Enable OPA Conftest Dockerfile scan"
         required: false
         type: boolean
         default: false
 
-      opa-policy-file-path:
-        description: "Policy file with complete path"
+      opa-policy:
+        description: "Path to OPA policy file"
         required: false
         type: string
-        
+        default: ""
+
 jobs:
   Dockerfile-Scan-Job:
     name: Dockerfile Scan
@@ -48,24 +53,41 @@ jobs:
       security-events: write
 
     steps:
+
+      # ============================================================
+      # Checkout
+      # ============================================================
+
       - name: Checkout Code
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
+      # ============================================================
+      # Validate Dockerfile
+      # ============================================================
+
       - name: Verify Dockerfile
         run: |
-          test -f "${{ inputs.dockerfile-path }} || {
-            echo "Dockerfile not found: ${{ inputs.dockerfile-path }}"
+          test -f "${{ inputs.dockerfile }}" || {
+            echo "Dockerfile not found: ${{ inputs.dockerfile }}"
             exit 1
           }
-          
-      - name: Hadolint scan
+
+      # ============================================================
+      # Hadolint
+      # ============================================================
+
+      - name: Hadolint Scan
         if: ${{ inputs.hadolint-scan }}
         uses: hadolint/hadolint-action@v3.3.0
         with:
-          dockerfile: ${{ inputs.service-name }}/Dockerfile
+          dockerfile: ${{ inputs.dockerfile }}
           failure-threshold: error
+
+      # ============================================================
+      # Trivy Dockerfile Scan
+      # ============================================================
 
       - name: Trivy Dockerfile Scan
         if: ${{ inputs.trivy-scan }}
@@ -73,12 +95,44 @@ jobs:
         with:
           version: v0.72.0
           scan-type: config
-          scan-ref: ${{ inputs.service-name }}/Dockerfile
+          scan-ref: ${{ inputs.dockerfile }}
           format: sarif
           output: trivy-${{ inputs.service-name }}-dockerfile.sarif
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          exit-code: 0   # 1
+          exit-code: 1
+
+      # ============================================================
+      # Upload Trivy SARIF
+      # ============================================================
+
+      - name: Upload Trivy Dockerfile SARIF
+        if: ${{ always() && inputs.trivy-scan }}
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-${{ inputs.service-name }}-dockerfile.sarif
+          category: trivy-dockerfile-${{ inputs.service-name }}
+
+      # ============================================================
+      # Verify OPA Policy
+      # ============================================================
+
+      - name: Verify OPA Policy
+        if: ${{ inputs.opa-conftest-scan }}
+        run: |
+          test -n "${{ inputs.opa-policy }}" || {
+            echo "OPA policy input is required when OPA Conftest scan is enabled"
+            exit 1
+          }
+
+          test -f "${{ inputs.opa-policy }}" || {
+            echo "OPA policy file not found: ${{ inputs.opa-policy }}"
+            exit 1
+          }
+
+      # ============================================================
+      # Install Conftest
+      # ============================================================
 
       - name: Install Conftest
         if: ${{ inputs.opa-conftest-scan }}
@@ -87,13 +141,13 @@ jobs:
           tar xzf conftest_Linux_x86_64.tar.gz
           sudo mv conftest /usr/local/bin/
 
+      # ============================================================
+      # OPA / Conftest
+      # ============================================================
+
       - name: OPA Policy Check
         if: ${{ inputs.opa-conftest-scan }}
-        run: conftest test ${{ inputs.dockerfile-path }} --policy {{ inputs.opa-policy-file-path }}
-
-      - name: Upload Trivy Dockerfile SARIF
-        if: ${{ always() && inputs.trivy-scan }}
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: trivy-${{ inputs.service-name }}-dockerfile.sarif
-          category: trivy-dockerfile-${{ inputs.service-name }}
+        run: |
+          conftest test \
+            "${{ inputs.dockerfile }}" \
+            --policy "${{ inputs.opa-policy }}"

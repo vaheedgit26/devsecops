@@ -7,7 +7,14 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/_01-ci-pr-backend.yml'
-
+      
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: read
+  security-events: write
+  actions: read
+  
 jobs:
   Pr-Check-Job:
     uses: ./.github/workflows/_go-pr-check.yml

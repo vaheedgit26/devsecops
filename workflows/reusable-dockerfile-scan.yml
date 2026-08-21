@@ -39,6 +39,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Hadolint scan
+        if: ${{ inputs.hadolint-scan }} 
+        run: echo "Execute Hadolint Dockerfile Scan"
+
       - name: Trivy Dockerfile Scan
         if: ${{ inputs.trivy-scan }}
         uses: aquasecurity/trivy-action@v0.36.0
@@ -52,13 +56,6 @@ jobs:
           ignore-unfixed: true
           exit-code: 0   # 1
 
-      - name: Upload Trivy Dockerfile SARIF
-        if: always()
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: trivy-${{ inputs.service-name }}-dockerfile.sarif
-          category: trivy-dockerfile-${{ inputs.service-name }}
-
       - name: Install Conftest
         if: ${{ inputs.opa-conftest-scan }}
         run: |
@@ -67,4 +64,12 @@ jobs:
           sudo mv conftest /usr/local/bin/
 
       - name: OPA Policy Check
+        if: ${{ inputs.opa-conftest-scan }}
         run: conftest test ${{ inputs.service-name }}/Dockerfile --policy docker-policy.rego
+
+      - name: Upload Trivy Dockerfile SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-${{ inputs.service-name }}-dockerfile.sarif
+          category: trivy-dockerfile-${{ inputs.service-name }}

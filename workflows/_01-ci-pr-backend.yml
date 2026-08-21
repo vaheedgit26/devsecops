@@ -10,7 +10,7 @@ on:
       - '.github/workflows/ci-backend.yml'
 
 jobs:
-  CI:
-    uses: ./.github/workflows/ci-service.yml
+  Pr-Check-Job:
+    uses: ./.github/workflows/_02-go-pr-check.yml
     with:
       service-name: backend

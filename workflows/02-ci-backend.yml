@@ -30,3 +30,8 @@ env:
   GITOPS_REPO: ${{ vars.GITOPS_REPO }}
 
 jobs:
+  Build-Job: 
+    name: Build Job
+    uses: ./.github/workflows/_go-build.yml
+    with: 
+      service-name: backend

@@ -14,8 +14,9 @@ on:
         default: false
 
       sonar-host-url:
-        required: false
+        required: true
         type: string
+        default: ""
 
       runner:
         description: "Runner label"

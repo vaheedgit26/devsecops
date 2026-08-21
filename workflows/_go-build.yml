@@ -24,5 +24,6 @@ jobs:
     name: Dockerfile Scan Job
     uses: ./.github/workflows/reusable-dockerfile-scan.yml
     with:
+      service-name: ${{ inputs.service-name }}
       dockerfile: ${{ inputs.service-name }}/Dockerfile
       trivy-scan: true

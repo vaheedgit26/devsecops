@@ -37,8 +37,8 @@ jobs:
     # secrets: inherit
 
   Sonarqube-Job:
-    name: Sonarqube
     if: ${{ inputs.sonarqube-scan }}
+    name: Sonarqube
     uses: ./.github/workflows/reusable-sonarqube.yml
     with:
       service-name: ${{ inputs.service-name }} 

@@ -19,3 +19,10 @@ jobs:
             
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  Dockerfile-Scan-Job:
+    name: Dockerfile Scan Job
+    uses: ./.github/workflows/reusable-dockerfile-scan.yml
+    with:
+      dockerfile: ./Dockerfile
+      trivy-scan: true

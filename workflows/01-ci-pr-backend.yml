@@ -10,6 +10,6 @@ on:
 
 jobs:
   Pr-Check-Job:
-    uses: ./.github/workflows/_02-go-pr-check.yml
+    uses: ./.github/workflows/_go-pr-check.yml
     with:
       service-name: backend

@@ -72,7 +72,7 @@ jobs:
         run: conftest test ${{ inputs.service-name }}/Dockerfile --policy docker-policy.rego
 
       - name: Upload Trivy Dockerfile SARIF
-        if: always() && ${{ inputs.trivy-scan }}
+        if: ${{ always() && inputs.trivy-scan }}
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-${{ inputs.service-name }}-dockerfile.sarif

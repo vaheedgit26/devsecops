@@ -8,13 +8,13 @@ on:
         type: string
 
       sonarqube-scan:
-        description: "SonarQube Scan"
-        required: true
+        description: "Enable SonarQube Scan"
+        required: false
         type: boolean
         default: false
 
       sonar-host-url:
-        required: true
+        required: false
         type: string
         default: ""
 
@@ -26,7 +26,7 @@ on:
 
     secrets:
       SONAR_TOKEN:
-        required: true    
+        required: false    
   
 jobs:
   

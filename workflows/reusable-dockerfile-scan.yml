@@ -6,7 +6,12 @@ on:
       service-name:
         required: true
         type: string
-      
+
+      dockerfile-path:
+        description: "Dockerfile with complete path"
+        required: true
+        type: string
+
       runner:
         description: "Runner label"
         required: false
@@ -27,6 +32,11 @@ on:
         required: false
         type: boolean
         default: false
+
+      opa-policy-file-path:
+        description: "Policy file with complete path"
+        required: false
+        type: string
         
 jobs:
   Dockerfile-Scan-Job:
@@ -43,9 +53,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify Dockerfile
+        run: |
+          test -f "${{ inputs.dockerfile-path }} || {
+            echo "Dockerfile not found: ${{ inputs.dockerfile-path }}"
+            exit 1
+          }
+          
       - name: Hadolint scan
-        if: ${{ inputs.hadolint-scan }} 
-        run: echo "Execute Hadolint Dockerfile Scan"
+        if: ${{ inputs.hadolint-scan }}
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: ${{ inputs.service-name }}/Dockerfile
+          failure-threshold: error
 
       - name: Trivy Dockerfile Scan
         if: ${{ inputs.trivy-scan }}
@@ -69,7 +89,7 @@ jobs:
 
       - name: OPA Policy Check
         if: ${{ inputs.opa-conftest-scan }}
-        run: conftest test ${{ inputs.service-name }}/Dockerfile --policy docker-policy.rego
+        run: conftest test ${{ inputs.dockerfile-path }} --policy {{ inputs.opa-policy-file-path }}
 
       - name: Upload Trivy Dockerfile SARIF
         if: ${{ always() && inputs.trivy-scan }}

@@ -31,7 +31,7 @@ on:
 jobs:
   Dockerfile-Scan-Job:
     name: Dockerfile Scan
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
 
     permissions:
       contents: read

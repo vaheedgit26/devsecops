@@ -1,10 +1,13 @@
+# Permissions
 ```text
-01-ci-pr-backend.yml
+01-ci-pr-backend.yml  (Top level Caller)
         │
         │  MAXIMUM AVAILABLE
         │
         ├── contents: read
         ├── pull-requests: read
+        ├── id-token: read
+        ├── actions: read
         └── security-events: write
         │
         ▼

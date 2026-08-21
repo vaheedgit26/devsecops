@@ -20,6 +20,7 @@ jobs:
     uses: ./.github/workflows/_go-pr-check.yml
     with:
       service-name: backend
+      sonarqube-scan: true
       sonar-host-url: ${{ vars.SONAR_HOST_URL }}
             
     secrets:

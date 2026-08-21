@@ -1,1 +1,16 @@
+# Reusable — Java Build + SAST + Container Security + ECR Push + Cosign Sign
+name: Reusable — GO Build & Security Gates
 
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        required: true
+        type: string
+  
+jobs:
+  Pr-Check-Job:
+    name: PR Check Job
+    uses: ./.github/workflows/_go-pr-check.yml
+    with:
+      service-name: ${{ inputs.service-name }}

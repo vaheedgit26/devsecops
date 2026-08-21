@@ -16,14 +16,18 @@ on:
       hadolint-scan:
         required: false
         type: boolean
+        default: false
         
       trivy-scan:
         required: false
         type: boolean
+        default: false
 
       opa-conftest-scan:
         required: false
         type: boolean
+        default: false
+        
 jobs:
   Dockerfile-Scan-Job:
     name: Dockerfile Scan

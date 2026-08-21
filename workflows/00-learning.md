@@ -13,11 +13,11 @@
         ▼
 _go-pr-check.yml
         │
-        │  No need to redefine permissions
+        │  No need to redefine permissions (Middle Layer)
         │
         ├──────────────┬───────────────┬───────────────┐
         ▼              ▼               ▼               ▼
-   Gitleaks        SonarQube       Trivy FS        CodeQL
+   Gitleaks        SonarQube       Trivy FS        CodeQL     (Reusable Workflows)
         │              │               │               │
         ▼              ▼               ▼               ▼
  contents:read    contents:read   contents:read   contents:read

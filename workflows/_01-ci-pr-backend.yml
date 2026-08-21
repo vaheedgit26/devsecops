@@ -2,12 +2,10 @@ name: CI - Backend
 
 on:
   push:
-    branches:
-      - develop
-      - 'release/**'
+    branches: ['feat-*', 'fix-*', 'chore-*']
     paths:
       - 'backend/**'
-      - '.github/workflows/ci-backend.yml'
+      - '.github/workflows/_01-ci-pr-backend.yml'
 
 jobs:
   Pr-Check-Job:

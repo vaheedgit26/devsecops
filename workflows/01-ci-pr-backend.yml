@@ -1,4 +1,4 @@
-name: CI - Backend
+name: PR Check — backend
 # Runs on feature/fix/chore branches.
 # Lint + test + SAST only. No Docker, no ECR, no deploy.
 on:

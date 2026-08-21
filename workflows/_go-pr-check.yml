@@ -6,6 +6,26 @@ on:
       service-name:
         required: true
         type: string
+
+      sonarqube-scan:
+        description: "SonarQube Scan"
+        required: true
+        type: boolean
+        default: false
+
+      sonar-host-url:
+        required: false
+        type: string
+
+      runner:
+        description: "Runner label"
+        required: false
+        type: string
+        default: ubuntu-latest
+
+    secrets:
+      SONAR_TOKEN:
+        required: true    
   
 jobs:
   
@@ -18,10 +38,11 @@ jobs:
 
   Sonarqube-Job:
     name: Sonarqube
+    if: ${{ inputs.sonarqube-scan }}
     uses: ./.github/workflows/reusable-sonarqube.yml
     with:
       service-name: ${{ inputs.service-name }} 
-      sonar-host-url: ${{ vars.SONAR_HOST_URL }}
+      sonar-host-url: ${{ inputs.sonar-host-url }}
             
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

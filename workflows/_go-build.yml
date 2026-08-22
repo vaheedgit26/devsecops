@@ -41,7 +41,7 @@ on:
 
     secrets:
       SONAR_TOKEN:
-        required: true
+        required: false
   
 jobs:
   Pr-Check-Job:
@@ -65,6 +65,7 @@ jobs:
 
   Image-Build-Job:
     name: Docker Image Build Job
+    needs: [Pr-Check-Job, Dockerfile-Scan-Job]
     uses: ./.github/workflows/reusable-image-build.yaml
     with: 
       dockerfile: ${{ inputs.dockerfile }}

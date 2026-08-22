@@ -23,8 +23,13 @@ on:
         required: true
         type: string
 
-      ecr-uri:
-        description: "Complete ECR URI: 123456.dkr.ecr.us-east-1.amazonaws.com/backend"
+      ecr-registry:
+        description: "ECR Registry URL"
+        required: true
+        type: string
+
+      ecr-repository:
+        description: "ECR Repository"
         required: true
         type: string
         
@@ -75,7 +80,7 @@ jobs:
       - name: Build Image
         id: image-build
         run: |
-          IMAGE_WITH_TAG="${{ inputs.ecr-uri }}:${{ steps.meta.outputs.image_tag }}"
+          IMAGE_WITH_TAG="${{ inputs.ecr-registry }}/${{ inputs.ecr-repository }}:${{ steps.meta.outputs.image_tag }}"
 
           docker build \
             -t "$IMAGE_WITH_TAG" \

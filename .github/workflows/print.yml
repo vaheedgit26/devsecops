@@ -13,4 +13,4 @@ jobs:
     name: Print
     uses: ./.github/workflows/reusable-print.yml
     with:
-      name: $NAME
+      name: $NAME 

@@ -39,7 +39,7 @@ on:
         type: string
         
       aws-ecr-role-arn:
-        description: "Complete AWS Role arn"
+        description: "Complete AWS ECR Role arn"
         required: true
         type: string
 

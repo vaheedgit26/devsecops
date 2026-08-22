@@ -109,7 +109,7 @@ jobs:
       service-name: ${{ inputs.service-name }}
       runner: ${{ inputs.runner }}
       image-with-digest: ${{ needs.Image-Build-Job.outputs.image_with_digest }}
-      aws-region: ${{ inputs.qws-region }}
+      aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
 
 

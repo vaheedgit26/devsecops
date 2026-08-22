@@ -42,7 +42,7 @@ jobs:
       - name: Construct Ecr Uri
         id: ecr-uri
         run: |
-          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazomaws.com/$ECR_REPOSITORY"
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY"
           echo "ecr-uri=$ECR_URI" >> "$GITHUB_OUTPUT"
         
   Build-Job: 

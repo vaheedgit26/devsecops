@@ -14,15 +14,16 @@ on:
         type: string
         default: ubuntu-latest
 
-      # ---------------- Sonarqube -------------------------
-      sonarqube-scan: 
+      # ---------------- SonarQube -------------------------
+      sonarqube-scan:
         required: false
         type: boolean
-        
+        default: false
+
       sonar-host-url:
         required: false
         type: string
-        
+
       # --------------- Image Build -------------------------
       dockerfile:
         description: "Path to Dockerfile"
@@ -48,17 +49,18 @@ on:
         description: "AWS Region to push Docker Image"
         required: true
         type: string
-        
+
       aws-ecr-role-arn:
-        description: "Role name to push ECR Image"
+        description: "Role ARN to push ECR Image"
         required: true
         type: string
 
     secrets:
       SONAR_TOKEN:
         required: false
-  
+
 jobs:
+
   Pr-Check-Job:
     name: PR Check Job
     uses: ./.github/workflows/_go-pr-check.yml
@@ -66,7 +68,7 @@ jobs:
       service-name: ${{ inputs.service-name }}
       sonarqube-scan: ${{ inputs.sonarqube-scan }}
       sonar-host-url: ${{ inputs.sonar-host-url }}
-            
+
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -80,13 +82,16 @@ jobs:
 
   Image-Build-Job:
     name: Docker Image Build Job
-    needs: [Pr-Check-Job, Dockerfile-Scan-Job]
+    needs:
+      - Pr-Check-Job
+      - Dockerfile-Scan-Job
+
     uses: ./.github/workflows/reusable-image-build.yaml
-    with: 
+    with:
+      service-name: ${{ inputs.service-name }}
       dockerfile: ${{ inputs.dockerfile }}
       build-context: ${{ inputs.build-context }}
       ecr-registry: ${{ inputs.ecr-registry }}
       ecr-repository: ${{ inputs.ecr-repository }}
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
-      

@@ -29,7 +29,7 @@ on:
         type: string
         
       aws-region:
-        desciption: "AWS Region to push Docker Image"
+        description: "AWS Region to push Docker Image"
         required: true
         type: string
         

@@ -25,13 +25,29 @@ permissions:
   actions: read
 
 env:
+  AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
   AWS_REGION: us-east-1
   ECR_REPOSITORY: api-gateway
   GITOPS_REPO: ${{ vars.GITOPS_REPO }}
 
 jobs:
+  Ecr-Uri-Job:
+    name: Construct ECR URI
+    runs-on: ubuntu-latest
+    
+    outputs:
+      ecr-uri: ${{ steps.ecr-uri.outputs.ecr-uri }}
+      
+    steps:
+      - name: Construct Ecr Uri
+        id: ecr-uri
+        run: |
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazomaws.com/$ECR_REPOSITORY"
+          echo "ecr-uri=$ECR_URI" >> "$GITHUB_OUTPUT"
+        
   Build-Job: 
     name: Build Job
+    needs: [Ecr-Uri-Job]
     uses: ./.github/workflows/_go-build.yml
     with: 
       service-name: backend
@@ -41,12 +57,13 @@ jobs:
       # --------------------------------------------
       sonarqube-scan: true
       sonar-host-url: ${{ vars.SONAR_HOST_URL }}
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
- 
-      # --------------------------------------------
+    
+       # --------------------------------------------
       # Docker Image Build
       # --------------------------------------------
       dockerfile: backend/Dockerfile
       build-context: backend
-      ecr-uri:
+      ecr-uri: ${{ needs.Ecr-Uri-Job.outputs.ecr-uri }}
+
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

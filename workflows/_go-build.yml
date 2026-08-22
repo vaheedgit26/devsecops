@@ -60,7 +60,7 @@ jobs:
     uses: ./.github/workflows/reusable-dockerfile-scan.yml
     with:
       service-name: ${{ inputs.service-name }}
-      dockerfile: ${{ inputs.service-name }}/Dockerfile
+      dockerfile: ${{ inputs.dockerfile }}
       trivy-scan: true
 
   Image-Build-Job:

@@ -24,7 +24,7 @@ on:
         type: string
 
       ecr-uri:
-        description: "Complete ECR URI: 123456.dkr.eck.us-east-1.amazonaws.com/backend"
+        description: "Complete ECR URI: 123456.dkr.ecr.us-east-1.amazonaws.com/backend"
         required: true
         type: string
         

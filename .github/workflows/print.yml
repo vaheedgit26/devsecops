@@ -3,7 +3,7 @@ name: Print name
 on:
   workflow_dispatch: 
 env:
-  NAME: VAHEED
+  NAME: "VAHEED AHMED SHAIK"
 
 jobs:
 

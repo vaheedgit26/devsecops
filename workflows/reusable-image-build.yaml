@@ -1,4 +1,5 @@
 name: Reusable - Docker Image Build
+
 on:
   workflow_call:
     inputs:
@@ -19,7 +20,7 @@ on:
         default: ubuntu-latest
 
       build-context:
-        description: "Image Build Context"
+        description: "Image build context"
         required: true
         type: string
 
@@ -29,11 +30,14 @@ on:
         type: string
 
     outputs:
-      image_with_tag: ${{ steps.image-build.outputs.image_with_tag }}
+      image_with_tag:
+        description: "Complete ECR image URI with tag"
+        value: ${{ jobs.Image-Build-Job.outputs.image_with_tag }}
 
 jobs:
   Image-Build-Job:
-    runs-on: ${{ inputs.service-name }}
+    name: Build Docker Image
+    runs-on: ${{ inputs.runner }}
 
     permissions:
       contents: read
@@ -42,30 +46,24 @@ jobs:
       image_with_tag: ${{ steps.image-build.outputs.image_with_tag }}
 
     steps:
-        - name: Checkout Code
-          uses: actions/checkout@v6
-          with:
-            fetch-depth: 0
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-        - name: Set image tag
-          id: meta
-          run: echo "image_tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - name: Set Image Tag
+        id: meta
+        run: |
+          echo "image_tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-        - name: Build Image
-          id: image-build
-          run: |
-            IMAGE_WITH_TAG="${{ inputs.ecr-uri }}:${{ steps.meta.outputs.image_tag }}"
-            docker build -t $IMAGE_WITH_TAG -f ${{ inputs.dockerfile }} ${{ inputs.build-context }}
+      - name: Build Image
+        id: image-build
+        run: |
+          IMAGE_WITH_TAG="${{ inputs.ecr-uri }}:${{ steps.meta.outputs.image_tag }}"
 
-            echo "image_with_tag=$IMAGE_WITH_TAG" >> "$GITHUB_OUTPUT"
+          docker build \
+            -t "$IMAGE_WITH_TAG" \
+            -f "${{ inputs.dockerfile }}" \
+            "${{ inputs.build-context }}"
 
-
-
-
-
-
-
-
-
-      
-
+          echo "image_with_tag=$IMAGE_WITH_TAG" >> "$GITHUB_OUTPUT"

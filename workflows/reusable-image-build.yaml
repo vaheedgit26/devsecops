@@ -38,7 +38,7 @@ on:
         required: true
         type: string
         
-      aws-role-arn:
+      aws-ecr-role-arn:
         description: "Complete AWS Role arn"
         required: true
         type: string
@@ -95,7 +95,7 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ inputs.aws-role-arn }}
+          role-to-assume: ${{ inputs.aws-ecr-role-arn }}
           aws-region: ${{ inputs.aws-region }}
 
       - name: Verify AWS identity

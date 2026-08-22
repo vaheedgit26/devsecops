@@ -9,8 +9,22 @@ env:
   NAME: VAHEED
 
 jobs:
+
+  set-name-job:
+    name: Set name
+    runs-on: ubuntu-latest
+
+    outputs:
+      name: ${{ steps.set-name.outputs.name }}
+
+    steps:
+      - name: Set name
+        id: set-name
+        run: echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
   print-name-job:
     name: Print
+    needs: set-name-job
     uses: ./.github/workflows/reusable-print.yml
     with:
-      name: $NAME 
+      name: ${{ needs.set-name-job.outputs.name }}

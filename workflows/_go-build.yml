@@ -14,6 +14,7 @@ on:
         type: string
         default: ubuntu-latest
 
+      # ---------------- Sonarqube -------------------------
       sonarqube-scan: 
         required: false
         type: boolean
@@ -21,7 +22,8 @@ on:
       sonar-host-url:
         required: false
         type: string
-
+        
+      # --------------- Image Build -------------------------
       dockerfile:
         description: "Path to Dockerfile"
         required: true

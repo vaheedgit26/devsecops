@@ -1,0 +1,13 @@
+name: Print name
+on:
+  push:
+    branches: main
+env:
+  name: VAHEED
+jobs:
+  print-name-job:
+    name: print name
+    uses: ./.github/workflows/reusable-print.yml
+    with:
+      name: ${{ env.name }}
+  

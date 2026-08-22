@@ -49,7 +49,7 @@ on:
         required: true
         type: string
         
-      aws-role-arn:
+      aws-ecr-role-arn:
         description: "Role name to push ECR Image"
         required: true
         type: string

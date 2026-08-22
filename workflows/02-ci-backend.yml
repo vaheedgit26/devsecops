@@ -35,12 +35,18 @@ jobs:
     uses: ./.github/workflows/_go-build.yml
     with: 
       service-name: backend
-    
+      
+      # --------------------------------------------
+      # Sonarqube Scan
+      # --------------------------------------------
       sonarqube-scan: true
       sonar-host-url: ${{ vars.SONAR_HOST_URL }}
       secrets:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
+ 
+      # --------------------------------------------
+      # Docker Image Build
+      # --------------------------------------------
       dockerfile: backend/Dockerfile
       build-context: backend
       ecr-uri:

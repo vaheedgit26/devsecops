@@ -1,17 +1,16 @@
 name: Print name
+
 on:
   push:
-    branches: main
+    branches:
+      - main
+
 env:
   NAME: VAHEED
+
 jobs:
   print-name-job:
-    name: set name
-    id: set-name
-    run: echo "name = $NAME" >> "$GITHUB_OUTPUTS"
-    
-    name: print 
+    name: Print
     uses: ./.github/workflows/reusable-print.yml
     with:
-      name: ${{ steps.set-name.outputs.name}}
-  
+      name: ${{ env.NAME }}

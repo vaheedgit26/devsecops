@@ -8,12 +8,33 @@ on:
         required: true
         type: string
 
+      runner:
+        description: "Runner label"
+        required: false
+        type: string
+        default: ubuntu-latest
+
       sonarqube-scan: 
         required: false
         type: boolean
         
       sonar-host-url:
         required: false
+        type: string
+
+      dockerfile:
+        description: "Path to Dockerfile"
+        required: true
+        type: string
+
+      build-context:
+        description: "Image build context"
+        required: true
+        type: string
+
+      ecr-uri:
+        description: "Complete ECR URI"
+        required: true
         type: string
 
     secrets:
@@ -43,3 +64,8 @@ jobs:
   Image-Build-Job:
     name: Docker Image Build Job
     uses: ./.github/workflows/reusable-image-build.yaml
+    with: 
+      dockerfile: ${{ inputs.dockerfile }}
+      build-context: ${{ inputs.build-context }}
+      ecr-uri: ${{ inputs.ecr-uri }}
+      

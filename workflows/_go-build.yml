@@ -7,6 +7,18 @@ on:
       service-name:
         required: true
         type: string
+
+      sonarqube-scan: 
+        required: false
+        type: boolean
+        
+      sonar-host-url:
+        required: false
+        type: string
+
+    secrets:
+      SONAR_TOKEN:
+        required: true
   
 jobs:
   Pr-Check-Job:
@@ -14,8 +26,8 @@ jobs:
     uses: ./.github/workflows/_go-pr-check.yml
     with:
       service-name: ${{ inputs.service-name }}
-      sonarqube-scan: true
-      sonar-host-url: ${{ vars.SONAR_HOST_URL }}
+      sonarqube-scan: ${{ inputs.sonarqube-scan }}
+      sonar-host-url: ${{ inputs.sonar-host-url }}
             
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -27,3 +39,7 @@ jobs:
       service-name: ${{ inputs.service-name }}
       dockerfile: ${{ inputs.service-name }}/Dockerfile
       trivy-scan: true
+
+  Image-Build-Job:
+    name: Docker Image Build Job
+    uses: ./.github/workflows/reusable-image-build.yaml

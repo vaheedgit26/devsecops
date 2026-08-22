@@ -1,0 +1,71 @@
+name: Reusable - Docker Image Build
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: "Service name"
+        required: true
+        type: string
+
+      dockerfile:
+        description: "Path to Dockerfile"
+        required: true
+        type: string
+
+      runner:
+        description: "Runner label"
+        required: false
+        type: string
+        default: ubuntu-latest
+
+      build-context:
+        description: "Image Build Context"
+        required: true
+        type: string
+
+      ecr-uri:
+        description: "Complete ECR URI"
+        required: true
+        type: string
+
+    outputs:
+      image_with_tag: ${{ steps.image-build.outputs.image_with_tag }}
+
+jobs:
+  Image-Build-Job:
+    runs-on: ${{ inputs.service-name }}
+
+    permissions:
+      contents: read
+
+    outputs:
+      image_with_tag: ${{ steps.image-build.outputs.image_with_tag }}
+
+    steps:
+        - name: Checkout Code
+          uses: actions/checkout@v6
+          with:
+            fetch-depth: 0
+
+        - name: Set image tag
+          id: meta
+          run: echo "image_tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+        - name: Build Image
+          id: image-build
+          run: |
+            IMAGE_WITH_TAG="${{ inputs.ecr-uri }}:${{ steps.meta.outputs.image_tag }}"
+            docker build -t $IMAGE_WITH_TAG -f ${{ inputs.dockerfile }} ${{ inputs.build-context }}
+
+            echo "image_with_tag=$IMAGE_WITH_TAG" >> "$GITHUB_OUTPUT"
+
+
+
+
+
+
+
+
+
+      
+

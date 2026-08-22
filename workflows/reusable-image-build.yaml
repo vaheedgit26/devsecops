@@ -3,6 +3,10 @@ name: Reusable - Docker Image Build
 on:
   workflow_call:
     inputs:
+      service-name:
+        required: true
+        type: string
+        
       runner:
         description: "Runner label"
         required: false
@@ -20,25 +24,42 @@ on:
         type: string
 
       ecr-uri:
-        description: "Complete ECR URI"
+        description: "Complete ECR URI: 123456.dkr.eck.us-east-1.amazonaws.com/backend"
+        required: true
+        type: string
+        
+      aws-region:
+        desciption: "AWS Region to push Docker Image"
+        required: true
+        type: string
+        
+      aws-role-arn:
+        description: "Complete AWS Role arn"
         required: true
         type: string
 
     outputs:
       image_with_tag:
         description: "Complete ECR image URI with tag"
-        value: ${{ jobs.Image-Build-Job.outputs.image_with_tag }}
+        value: ${{ jobs.Build-Scan-Push-Image-Job.outputs.image_with_tag }}
+
+      image_with_digest:
+        description: "Complete ECR image URI with DIGEST"
+        value: ${{ jobs.Build-Scan-Push-Image-Job.outputs.image_with_digest }}
 
 jobs:
-  Image-Build-Job:
+  Build-Scan-Push-Image-Job:
     name: Build Docker Image
     runs-on: ${{ inputs.runner }}
 
     permissions:
       contents: read
+      security-events: write
+      id-token: write
 
     outputs:
-      image_with_tag: ${{ steps.image-build.outputs.image_with_tag }}
+      image_with_tag: ${{ steps.push.outputs.image_with_tag }}
+      image_with_digest: ${{ steps.push.outputs.image_with_digest }}
 
     steps:
       - name: Checkout Code
@@ -62,3 +83,56 @@ jobs:
             "${{ inputs.build-context }}"
 
           echo "image_with_tag=$IMAGE_WITH_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Verify AWS CLI
+        run: aws --version
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.aws-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity  
+        
+      - name: Trivy — Image vulnerability scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          version: v0.72.0
+          image-ref: ${{ steps.image-build.outputs.image_with_tag }}
+          format: sarif
+          output: trivy-image-${{ inputs.service-name }}.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 0
+
+      - name: Upload Trivy Image SARIF to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-image-${{ inputs.service-name }}.sarif
+          category: trivy-image-${{ inputs.service-name }}   
+
+      - name: Push image to ECR
+        id: push
+        run: |
+          IMAGE_WITH_TAG="${{ steps.image-build.outputs.image_with_tag }}"
+          docker push "$IMAGE_WITH_TAG"
+
+          # Capture the content-addressable DIGEST for immutable signing reference
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_WITH_TAG" | awk -F@ '{print $2}')
+
+          # DIGEST=$(aws ecr describe-images \
+          #   --repository-name "${{ inputs.ecr-repository }}" \
+          #   --image-ids imageTag="${{ steps.meta.outputs.image_tag }}" \
+          #   --query 'imageDetails[0].imageDigest' \
+          #   --output text)
+
+          IMAGE_WITH_DIGEST="${{ inputs.ecr-uri }}@$DIGEST"
+
+          echo "Pushed: $IMAGE_WITH_TAG  (digest: $DIGEST)"
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
+          echo "image_with_tag=$IMAGE_WITH_TAG" >> "$GITHUB_OUTPUT"
+          echo "image_with_digest=$IMAGE_WITH_DIGEST" >> "$GITHUB_OUTPUT"  

@@ -65,6 +65,7 @@ jobs:
       build-context: backend
       ecr-uri: ${{ needs.Ecr-Uri-Job.outputs.ecr-uri }}
 
+      arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/shopverse-dev-github-actions-role
       shopverse-dev-github-actions-role
 
     secrets:

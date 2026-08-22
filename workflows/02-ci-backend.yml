@@ -39,7 +39,7 @@ jobs:
       ecr-uri: ${{ steps.ecr-uri.outputs.ecr-uri }}
       
     steps:
-      - name: Construct Ecr Uri
+      - name: Construct ECR URI
         id: ecr-uri
         run: |
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY"

@@ -134,7 +134,7 @@ jobs:
           #   --query 'imageDetails[0].imageDigest' \
           #   --output text)
 
-          IMAGE_WITH_DIGEST="${{ inputs.ecr-uri }}@$DIGEST"
+          IMAGE_WITH_DIGEST="${{ inputs.ecr-registry }}/${{ inputs.ecr-repository }}@$DIGEST"
 
           echo "Pushed: $IMAGE_WITH_TAG  (digest: $DIGEST)"
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"

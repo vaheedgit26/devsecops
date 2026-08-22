@@ -53,12 +53,13 @@ jobs:
           echo "aws-region=$AWS_REGION" >> "$GITHUB_OUTPUT"
           echo "aws-ecr-role-arn=$AWS_ECR_ROLE_ARN" >> "$GITHUB_OUTPUT"
         
-  Build-Job: 
-    name: Build Job
+  CI-Job: 
+    name: CI Job
     needs: [Aws-Params-Job]
     uses: ./.github/workflows/_go-build.yml
     with: 
       service-name: backend      # ${{ needs.Aws-Params-Job.outputs.ecr-repository }}
+      runner: ubuntu-latest
       
       # --------------------------------------------
       # Sonarqube Scan
@@ -75,7 +76,6 @@ jobs:
       ecr-repository: ${{ needs.Aws-Params-Job.outputs.ecr-repository }}
       aws-region: ${{ needs.Aws-Params-Job.outputs.aws-region }}
       aws-ecr-role-arn: ${{ needs.Aws-Params-Job.outputs.aws-ecr-role-arn }}
-      
       
 
     secrets:

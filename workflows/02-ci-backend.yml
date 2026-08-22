@@ -27,30 +27,38 @@ permissions:
 env:
   AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
   AWS_REGION: us-east-1
+  AWS_ECR_ROLE_ARN: ${{ vars.AWS_ECR_ROLE_ARN }}  # arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/shopverse-dev-github-actions-role
   ECR_REPOSITORY: backend
   GITOPS_REPO: ${{ vars.GITOPS_REPO }}
 
 jobs:
-  Ecr-Uri-Job:
-    name: Construct ECR URI
+  Aws-Params-Job:
+    name: AWS Parameters
     runs-on: ubuntu-latest
     
     outputs:
-      ecr-uri: ${{ steps.ecr-uri.outputs.ecr-uri }}
+      ecr-registry: ${{ steps.aws-params.outputs.ecr-registry }}
+      ecr-repository: ${{ steps.aws-params.outputs.ecr-repository }}
+      aws-region: ${{ steps.aws-params.outputs.aws-region }}
+      aws-ecr-role-arn: ${{ steps.aws-params.outputs.aws-ecr-role-arn }}
       
     steps:
-      - name: Construct ECR URI
-        id: ecr-uri
+      - name: Construct ECR Registry
+        id: aws-params
         run: |
-          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY"
-          echo "ecr-uri=$ECR_URI" >> "$GITHUB_OUTPUT"
+          ECR_REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+          
+          echo "ecr-registry=$ECR_REGISTRY" >> "$GITHUB_OUTPUT"
+          echo "ecr-repository=$ECR_REPOSITORY" >> "$GITHUB_OUTPUT"
+          echo "aws-region=$AWS_REGION" >> "$GITHUB_OUTPUT"
+          echo "aws-ecr-role-arn=$AWS_ECR_ROLE_ARN" >> "$GITHUB_OUTPUT"
         
   Build-Job: 
     name: Build Job
-    needs: [Ecr-Uri-Job]
+    needs: [Aws-Params-Job]
     uses: ./.github/workflows/_go-build.yml
     with: 
-      service-name: backend
+      service-name: ${{ needs.Aws-Params-Job.outputs.ecr-repository }}  # backend
       
       # --------------------------------------------
       # Sonarqube Scan
@@ -58,15 +66,17 @@ jobs:
       sonarqube-scan: true
       sonar-host-url: ${{ vars.SONAR_HOST_URL }}
     
-       # --------------------------------------------
+      # --------------------------------------------
       # Docker Image Build
       # --------------------------------------------
       dockerfile: backend/Dockerfile
       build-context: backend
-      ecr-uri: ${{ needs.Ecr-Uri-Job.outputs.ecr-uri }}
-
-      arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/shopverse-dev-github-actions-role
-      shopverse-dev-github-actions-role
+      ecr-registry: ${{ needs.Aws-Params-Job.outputs.ecr-registry }}
+      ecr-repository: ${{ needs.Aws-Params-Job.outputs.ecr-repository }}
+      aws-region: ${{ needs.Aws-Params-Job.outputs.aws-region }}
+      aws-ecr-role-arn: ${{ needs.Aws-Params-Job.outputs.aws-ecr-role-arn }}
+      
+      
 
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

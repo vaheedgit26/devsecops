@@ -54,7 +54,7 @@ on:
 
 jobs:
   Build-Scan-Push-Image-Job:
-    name: Build Docker Image
+    name: Build Scan Push Image Job
     runs-on: ${{ inputs.runner }}
 
     permissions:

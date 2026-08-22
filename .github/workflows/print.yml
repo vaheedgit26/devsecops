@@ -9,5 +9,5 @@ jobs:
     name: print name
     uses: ./.github/workflows/reusable-print.yml
     with:
-      name: ${{ env.name }}
+      name: ${{ name }}
   

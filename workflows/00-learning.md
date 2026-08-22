@@ -1,4 +1,4 @@
-# Permissions
+# Permissions:   
 ```text
 01-ci-pr-backend.yml  (Top level Caller)
         │
@@ -24,7 +24,7 @@ _go-pr-check.yml
  security-events  (if needed)     security-events security-events
  ```
 
-## CI Flow  
+## CI Flow:    
 ```text
 _go-build.yml
 │

@@ -40,3 +40,7 @@ jobs:
       sonar-host-url: ${{ vars.SONAR_HOST_URL }}
       secrets:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      dockerfile: backend/Dockerfile
+      build-context: backend
+      ecr-uri:

@@ -3,21 +3,16 @@ name: Reusable - Docker Image Build
 on:
   workflow_call:
     inputs:
-      service-name:
-        description: "Service name"
-        required: true
-        type: string
-
-      dockerfile:
-        description: "Path to Dockerfile"
-        required: true
-        type: string
-
       runner:
         description: "Runner label"
         required: false
         type: string
         default: ubuntu-latest
+      
+      dockerfile:
+        description: "Path to Dockerfile"
+        required: true
+        type: string
 
       build-context:
         description: "Image build context"

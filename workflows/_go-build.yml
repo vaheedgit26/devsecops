@@ -66,6 +66,7 @@ jobs:
     uses: ./.github/workflows/_go-pr-check.yml
     with:
       service-name: ${{ inputs.service-name }}
+      runner: ${{ inputs.runner }}
       sonarqube-scan: ${{ inputs.sonarqube-scan }}
       sonar-host-url: ${{ inputs.sonar-host-url }}
 
@@ -77,6 +78,7 @@ jobs:
     uses: ./.github/workflows/reusable-dockerfile-scan.yml
     with:
       service-name: ${{ inputs.service-name }}
+      runner: ${{ inputs.runner }}
       dockerfile: ${{ inputs.dockerfile }}
       trivy-scan: true
 
@@ -89,9 +91,29 @@ jobs:
     uses: ./.github/workflows/reusable-image-build.yaml
     with:
       service-name: ${{ inputs.service-name }}
+      runner: ${{ inputs.runner }}
       dockerfile: ${{ inputs.dockerfile }}
       build-context: ${{ inputs.build-context }}
       ecr-registry: ${{ inputs.ecr-registry }}
       ecr-repository: ${{ inputs.ecr-repository }}
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
+
+  Image-Sign-Job:
+    name: Image Sign
+    needs: 
+      - Image-Build-Job
+
+    uses: ./.github/workflows/reusable-image-sign.yml
+    with:
+      service-name: ${{ inputs.service-name }}
+      runner: ${{ inputs.runner }}
+      image-with-digest: ${{ needs.Image-Build-Job.outputs.image_with_digest }}
+      aws-region: ${{ inputs.qws-region }}
+      aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
+
+
+
+
+
+      

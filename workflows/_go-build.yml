@@ -39,6 +39,16 @@ on:
         required: true
         type: string
 
+      aws-region:
+        desciption: "AWS Region to push Docker Image"
+        required: true
+        type: string
+        
+      aws-role:
+        description: "Role name to push ECR Image"
+        required: true
+        type: string
+
     secrets:
       SONAR_TOKEN:
         required: false

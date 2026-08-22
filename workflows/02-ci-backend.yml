@@ -58,7 +58,7 @@ jobs:
     needs: [Aws-Params-Job]
     uses: ./.github/workflows/_go-build.yml
     with: 
-      service-name: ${{ needs.Aws-Params-Job.outputs.ecr-repository }}  # backend
+      service-name: backend      # ${{ needs.Aws-Params-Job.outputs.ecr-repository }}
       
       # --------------------------------------------
       # Sonarqube Scan

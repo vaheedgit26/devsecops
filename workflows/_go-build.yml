@@ -88,5 +88,5 @@ jobs:
       ecr-registry: ${{ inputs.ecr-registry }}
       ecr-repository: ${{ inputs.ecr-repository }}
       aws-region: ${{ inputs.aws-region }}
-      aws-ecr-role-arn: ${{ inputs.aws-role-arn }}
+      aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
       

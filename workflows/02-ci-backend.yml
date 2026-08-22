@@ -35,3 +35,8 @@ jobs:
     uses: ./.github/workflows/_go-build.yml
     with: 
       service-name: backend
+    
+      sonarqube-scan: true
+      sonar-host-url: ${{ vars.SONAR_HOST_URL }}
+      secrets:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

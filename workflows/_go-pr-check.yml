@@ -57,6 +57,7 @@ jobs:
     uses: ./.github/workflows/reusable-gitleaks.yml
     with:
       service-name: ${{ inputs.service-name }} 
+      runner: ${{ inputs.runner }}
     # secrets: inherit
 
   Sonarqube-Job:
@@ -65,6 +66,7 @@ jobs:
     uses: ./.github/workflows/reusable-sonarqube.yml
     with:
       service-name: ${{ inputs.service-name }} 
+      runner: ${{ inputs.runner }}
       sonar-host-url: ${{ inputs.sonar-host-url }}
             
     secrets:
@@ -76,6 +78,7 @@ jobs:
     uses: ./.github/workflows/reusable-trivy-fs.yml
     with:
       service-name: ${{ inputs.service-name }}
+      runner: ${{ inputs.runner }}
 
   Codeql-Analysis-Job:
     if: ${{ inputs.codeql-scan }}
@@ -83,3 +86,4 @@ jobs:
     uses: ./.github/workflows/reusable-codeql.yml
     with:
       service-name: ${{ inputs.service-name }}
+      runner: ${{ inputs.runner }}

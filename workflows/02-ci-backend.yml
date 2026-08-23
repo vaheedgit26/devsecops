@@ -77,8 +77,8 @@ jobs:
       hadolint-scan: false
       opa-conftest-scan: false
 
-      enable-image-sign: false
-      enable-image-sbom: false
+      image-sign: false
+      image-sbom: false
       
       ecr-registry: ${{ needs.Aws-Params-Job.outputs.ecr-registry }}
       ecr-repository: ${{ needs.Aws-Params-Job.outputs.ecr-repository }}

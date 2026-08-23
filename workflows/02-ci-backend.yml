@@ -61,21 +61,19 @@ jobs:
       service-name: backend      # ${{ needs.Aws-Params-Job.outputs.ecr-repository }}
       runner: ubuntu-latest
       
-      # --------------------------------------------
-      # Sonarqube Scan
-      # --------------------------------------------
-      sonarqube-scan: true
-      sonar-host-url: ${{ vars.SONAR_HOST_URL }}
-    
-      # --------------------------------------------
-      # Docker Image Build
-      # --------------------------------------------
+      gitleaks-scan: true
+      trivy-fs-scan: true
+      codeql-scan: false
+      sonarqube-scan: false
+      sonar-host-url: ""        # ${{ vars.SONAR_HOST_URL }}
+
+      image-build: false
       dockerfile: backend/Dockerfile
       build-context: backend
       
-      trivy-scan: true
-      hadolint-scan: false
-      opa-conftest-scan: false
+      trivy-dockerfile-scan: false
+      hadolint-dockerfile-scan: false
+      opa-conftest-dockerfile-scan: false
 
       image-sign: false
       image-sbom: false

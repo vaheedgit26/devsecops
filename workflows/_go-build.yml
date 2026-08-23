@@ -121,8 +121,3 @@ jobs:
       image-with-digest: ${{ needs.Image-Build-Job.outputs.image_with_digest }}
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
-
-
-
-
-      

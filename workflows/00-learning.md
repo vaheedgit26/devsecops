@@ -1,4 +1,4 @@
-# Permissions:   
+# 1. Permissions:   
 ```text
 01-ci-pr-backend.yml  (Top level Caller)
         │
@@ -24,7 +24,7 @@ _go-pr-check.yml
  security-events  (if needed)     security-events security-events
  ```
 
-## CI Flow:    
+## 2. CI Flow:    
 ```text
 _go-build.yml
 │
@@ -53,7 +53,7 @@ _go-build.yml
       └── Upload SBOM Artifact
 ```
 
-## Main Workflow:  
+## 3. Main Workflow:  
 ```text
 02-ci-backend.yml
         │
@@ -67,7 +67,7 @@ _go-build.yml
         └── SBOM + attestation
 ```
 
-## For your security architecture:  
+## 4. For your security architecture:  
 ```text
 | Stage        | Tool         | Purpose                        |
 | ------------ | ------------ | ------------------------------ |
@@ -84,7 +84,7 @@ _go-build.yml
 | Cluster      | Kyverno      | Runtime admission enforcement  |
 ```
 
-## Application repository:  
+## 4. Application repository:  
 ```text
 application-repo/
 │
@@ -109,7 +109,7 @@ application-repo/
         └── reusable-sbom-attestation.yml
 ```
 
-## GitOps repository:  
+## 6. GitOps repository:  
 ```text
 gitops-repo/
 │
@@ -136,4 +136,130 @@ gitops-repo/
     └── prod/
         └── backend/
             └── values.yaml
+```
+## 7. Final deployment chain:
+```text
+                 APPLICATION REPO
+                       │
+                       ▼
+                 Developer Push
+                       │
+                       ▼
+                _go-pr-check.yml
+                       │
+             ┌─────────┴──────────┐
+             ▼                    ▼
+         SAST / Secrets       FS Scan
+             │
+             ▼
+              _go-build.yml
+                   │
+       ┌───────────┼─────────────┐
+       ▼           ▼             ▼
+ Dockerfile     Build         Security
+   Scan         Image          Gates
+                   │
+                   ▼
+                 Trivy
+                   │
+                   ▼
+                 ECR
+                   │
+                   ▼
+              Image Digest
+                   │
+          ┌────────┼─────────┐
+          ▼        ▼         ▼
+       Cosign     SBOM     Attestation
+          │
+          └────────┬────────┘
+                   ▼
+            Update GitOps
+                   │
+                   ▼
+            Create GitOps PR
+                   │
+                   ▼
+          ┌──────────────────┐
+          │   GITOPS REPO    │
+          │                  │
+          │ values.yaml      │
+          │ Helm templates   │
+          └────────┬─────────┘
+                   │
+                   ▼
+              GitOps CI
+                   │
+          ┌────────┼──────────┐
+          ▼        ▼          ▼
+       Helm      Trivy     Conftest
+      Template    Config      OPA
+          │        │          │
+          └────────┼──────────┘
+                   ▼
+              Kyverno CLI
+                   │
+                   ▼
+                PASS
+                   │
+                   ▼
+               PR Merge
+                   │
+                   ▼
+                Argo CD
+                   │
+                   ▼
+                  EKS
+                   │
+                   ▼
+                Kyverno
+                   │
+          ┌────────┼─────────┐
+          ▼        ▼         ▼
+       Signature  SBOM      Image
+       Verify    Verify     Policy
+                   │
+                   ▼
+              Application
+```
+
+## 8. Application CI:  
+```text
+Application repo
+      │
+      ▼
+_go-build.yml
+      │
+      ├── Build
+      ├── Scan
+      ├── Push
+      ├── Sign
+      ├── SBOM
+      └── Create GitOps PR
+```
+
+## 9. GitOps CI:  
+```text
+GitOps repo
+      │
+      ▼
+GitOps PR
+      │
+      ├── Helm lint
+      ├── Helm template
+      ├── Trivy config
+      ├── OPA/Conftest
+      └── Kyverno CLI
+      │
+      ▼
+    Merge
+      │
+      ▼
+   Argo CD
+      │
+      ▼
+     EKS
+      │
+      ▼
+   Kyverno
 ```

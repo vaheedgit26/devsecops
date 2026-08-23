@@ -4,6 +4,7 @@ on:
   workflow_call:
     inputs:
       service-name:
+        description: "Service Name"
         required: true
         type: string
 

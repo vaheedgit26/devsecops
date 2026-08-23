@@ -72,6 +72,11 @@ jobs:
       # --------------------------------------------
       dockerfile: backend/Dockerfile
       build-context: backend
+      
+      trivy-scan: true
+      hadolint-scan: false
+      opa-conftest-scan: false
+      
       ecr-registry: ${{ needs.Aws-Params-Job.outputs.ecr-registry }}
       ecr-repository: ${{ needs.Aws-Params-Job.outputs.ecr-repository }}
       aws-region: ${{ needs.Aws-Params-Job.outputs.aws-region }}

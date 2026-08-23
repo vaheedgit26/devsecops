@@ -28,28 +28,27 @@ _go-pr-check.yml
 ```text
 _go-build.yml
 │
-├── Pr-Check-Job
-│     └── _go-pr-check.yml
-│          ├── Gitleaks
-│          ├── SonarQube
-│          ├── Trivy FS
-│          └── CodeQL
+├── _go-pr-check.yml
+│     ├── Gitleaks
+│     ├── SonarQube
+│     ├── Trivy FS
+│     └── CodeQL
 │
-├── Dockerfile-Scan-Job
-│     └── reusable-dockerfile-scan.yml
-│          ├── Hadolint
-│          └── Trivy Dockerfile
+├── reusable-dockerfile-scan.yml
+│     ├── Hadolint
+│     ├── Trivy Dockerfile
+│     └── OPA/Conftest
 │
-├── Image-Build-Job
-│     └── reusable-image-build.yml
-│          ├── Docker build
-│          ├── Trivy image
-│          └── Push to ECR
-│                    │
-│                    ▼
-│             image_with_digest
+├── reusable-image-build.yml
+│     ├── Docker Build
+│     ├── Trivy Image Scan
+│     └── ECR Push
 │
-└── Image-Sign-Job
-      └── reusable-image-sign.yml
-           └── Cosign keyless signing
+├── reusable-image-sign.yml
+│     └── Cosign Sign
+│
+└── reusable-sbom-attestation.yml
+      ├── Trivy → CycloneDX SBOM
+      ├── Cosign Attest
+      └── Upload SBOM Artifact
 ```

@@ -14,7 +14,7 @@ on:
         type: string
         default: ubuntu-latest
 
-      # ---------------- SonarQube -------------------------
+      # ---------------- SonarQube ------------------------- #
       sonarqube-scan:
         required: false
         type: boolean
@@ -24,7 +24,7 @@ on:
         required: false
         type: string
 
-      # --------------- Image Build -------------------------
+      # --------------- Image Build ------------------------- #
       dockerfile:
         description: "Path to Dockerfile"
         required: true
@@ -35,6 +35,26 @@ on:
         required: true
         type: string
 
+      # --------------- Image Scans ------------------------- #
+      hadolint-scan:
+        description: "Enable Hadolint Dockerfile Scan"
+        required: false
+        type: boolean
+        default: false
+
+      trivy-scan:
+        description: "Enable Hadolint Dockerfile Scan"
+        required: false
+        type: boolean
+        default: false
+
+      opa-conftest-scan:
+        description: "Enable Trivy Dockerfile Scan"
+        required: false
+        type: boolean
+        default: false
+      # ----------------------------------------------------- #
+        
       ecr-registry:
         description: "ECR Registry URL"
         required: true
@@ -80,7 +100,9 @@ jobs:
       service-name: ${{ inputs.service-name }}
       runner: ${{ inputs.runner }}
       dockerfile: ${{ inputs.dockerfile }}
-      trivy-scan: true
+      hadolint-scan: ${{ inputs.hadolint-scan }}
+      trivy-scan: ${{ inputs.trivy-scan }}
+      opa-conftest-scan: ${{ inputs.opa-conftest-scan }}
 
   Image-Build-Job:
     name: Docker Image Build Job

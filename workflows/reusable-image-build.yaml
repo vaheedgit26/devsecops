@@ -44,13 +44,17 @@ on:
         type: string
 
     outputs:
-      image_with_tag:
-        description: "Complete ECR image URI with tag"
-        value: ${{ jobs.Build-Scan-Push-Image-Job.outputs.image_with_tag }}
+      image_digest:
+        description: "Only Image DIGEST"
+        value: ${{ jobs.Build-Scan-Push-Image-Job.outputs.image_digest }}
 
       image_with_digest:
         description: "Complete ECR image URI with DIGEST"
         value: ${{ jobs.Build-Scan-Push-Image-Job.outputs.image_with_digest }}
+        
+      image_with_tag:
+        description: "Complete ECR image URI with tag"
+        value: ${{ jobs.Build-Scan-Push-Image-Job.outputs.image_with_tag }}
 
 jobs:
   Build-Scan-Push-Image-Job:
@@ -63,8 +67,9 @@ jobs:
       id-token: write
 
     outputs:
-      image_with_tag: ${{ steps.push.outputs.image_with_tag }}
+      image_digest: ${{ steps.push.outputs.image_digest }}
       image_with_digest: ${{ steps.push.outputs.image_with_digest }}
+      image_with_tag: ${{ steps.push.outputs.image_with_tag }}
 
     steps:
       - name: Checkout Code
@@ -137,7 +142,7 @@ jobs:
           IMAGE_WITH_DIGEST="${{ inputs.ecr-registry }}/${{ inputs.ecr-repository }}@$DIGEST"
 
           echo "Pushed: $IMAGE_WITH_TAG  (digest: $DIGEST)"
-          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "image_digest=$DIGEST" >> "$GITHUB_OUTPUT"
 
           echo "image_with_tag=$IMAGE_WITH_TAG" >> "$GITHUB_OUTPUT"
           echo "image_with_digest=$IMAGE_WITH_DIGEST" >> "$GITHUB_OUTPUT"  

@@ -83,3 +83,56 @@ _go-build.yml
 | Rendered K8s | Kyverno CLI  | Same policies as admission     |
 | Cluster      | Kyverno      | Runtime admission enforcement  |
 ```
+## Application repository:  
+```text
+application-repo/
+│
+├── backend/
+│   ├── Dockerfile
+│   ├── go.mod
+│   └── ...
+│
+└── .github/
+    └── workflows/
+        ├── _go-pr-check.yml
+        ├── _go-build.yml
+        │
+        ├── reusable-gitleaks.yml
+        ├── reusable-sonarqube.yml
+        ├── reusable-trivy-fs.yml
+        ├── reusable-codeql.yml
+        │
+        ├── reusable-dockerfile-scan.yml
+        ├── reusable-image-build.yml
+        ├── reusable-image-sign.yml
+        └── reusable-sbom-attestation.yml
+```
+
+## GitOps repository:  
+```text
+gitops-repo/
+│
+├── charts/
+│   └── backend/
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       └── templates/
+│           ├── deployment.yaml
+│           ├── service.yaml
+│           ├── ingress.yaml
+│           ├── serviceaccount.yaml
+│           └── ...
+│
+└── envs/
+    ├── dev/
+    │   └── backend/
+    │       └── values.yaml
+    │
+    ├── qa/
+    │   └── backend/
+    │       └── values.yaml
+    │
+    └── prod/
+        └── backend/
+            └── values.yaml
+```

@@ -1,0 +1,83 @@
+name: Reusable - Update Helm Values
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: "Service name"
+        required: true
+        type: string
+
+      runner:
+        description: "Runner label"
+        required: false
+        type: string
+        default: ubuntu-latest
+
+      gitops-repo:
+        description: "GiOps Repository"
+        required: true
+        type: string
+
+      helm-values-file:
+        description: "Path to Helm values.yaml"
+        required: true
+        type: string
+
+      image-digest:
+        description: "Image Digest"
+        required: true
+        type: string
+
+      image-with-digest:
+        description: "Complete image reference with digest"
+        required: true
+        type: string
+
+    secrets:
+      GITOPS_TOKEN:
+        required: true
+      
+jobs:
+
+  Update-Helm-Values-Job:
+    name: Update Helm Values
+    runs-on: ${{ inputs.runner }}
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ inputs.gitops-repo }}
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: _gitops   
+
+      - name: Verify values file
+        run: |
+          if [ ! -f "${{ inputs.helm-values-file }}" ]; then
+            echo "ERROR: Values file not found: ${{ inputs.helm-values-file }}"
+            exit 1
+          fi
+
+          echo "Values file found: ${{ inputs.helm-values-file }}"
+
+      - name: Print DIGEST and IMAGE WITH DIGEST
+        run: |
+          echo "Image DIGEST: ${{ inputs.image-digest }}"
+          echo "Image with DIGEST: ${{ inputs.image-with-digest }}
+
+      - name: Update image tag in manifest
+        run: |
+          cd _gitops
+          sed -i "s|digest: .*|digest: $DIGEST|g" _gitops/envs/dev/values-backend.yaml
+
+      - name: Show updated manifest (debug)
+        run: |
+          cat _gitops/envs/dev/values-backend.yaml
+
+      - name: Show Git diff
+        run: git diff -- "${{ inputs.values-file }}"
+        

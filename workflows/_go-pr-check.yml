@@ -4,8 +4,15 @@ on:
   workflow_call:
     inputs:
       service-name:
+        description: "Service Name"
         required: true
         type: string
+
+      runner:
+        description: "Runner label"
+        required: false
+        type: string
+        default: ubuntu-latest
 
       sonarqube-scan:
         description: "Enable SonarQube Scan"
@@ -14,15 +21,29 @@ on:
         default: false
 
       sonar-host-url:
+        description: "Sonarqube Host Url"
         required: false
         type: string
         default: ""
 
-      runner:
-        description: "Runner label"
+      gitleaks-scan:
+        description: "Enable Gitleaks Scan"
         required: false
-        type: string
-        default: ubuntu-latest
+        type: boolean
+        default: false
+
+      trivy-fs-scan:
+        description: "Enable Trivy FS Scan"
+        required: false
+        type: boolean
+        default: false
+
+      codeql-scan:
+        description: "Enable Codeql Scan"
+        required: false
+        type: boolean
+        default: false
+        
 
     secrets:
       SONAR_TOKEN:
@@ -31,6 +52,7 @@ on:
 jobs:
   
   Gitleaks-Job:
+    if: ${{ inputs.gitleaks-scan }}
     name: Gitleaks
     uses: ./.github/workflows/reusable-gitleaks.yml
     with:
@@ -49,12 +71,14 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   Trivy-Fs-Scan-Job:
+    if: ${{ inputs.trivy-fs-scan }}
     name: Trivy Fs Scan
     uses: ./.github/workflows/reusable-trivy-fs.yml
     with:
       service-name: ${{ inputs.service-name }}
 
   Codeql-Analysis-Job:
+    if: ${{ inputs.codeql-scan }}
     name: Codeql Analysis
     uses: ./.github/workflows/reusable-codeql.yml
     with:

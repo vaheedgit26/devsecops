@@ -125,6 +125,12 @@ on:
         type: boolean
         default: false
 
+      helm-values-file:
+        description: "Helm Values File"
+        required: true
+        type: string
+        default: ""
+
     secrets:
       SONAR_TOKEN:
         required: false
@@ -200,3 +206,14 @@ jobs:
       image-with-digest: ${{ needs.Image-Build-Job.outputs.image_with_digest }}
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
+
+  Update-Helm-Values-Job:
+  name: Update Helm Values
+  needs:
+    - Image-Build-Job
+  uses: ./.github/workflows/reusable-update-helm-values.yml
+  with:
+    service-name: ${{ inputs.service-name }}
+    runner: ${{ inputs.runner }}
+    values-file: ${{ inputs.helm-values-file }} #envs/dev/backend/values.yaml
+    digest: ${{ needs.Image-Build-Job.outputs.image_digest }}

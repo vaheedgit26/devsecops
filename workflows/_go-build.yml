@@ -87,7 +87,6 @@ jobs:
     needs:
       - Pr-Check-Job
       - Dockerfile-Scan-Job
-
     uses: ./.github/workflows/reusable-image-build.yaml
     with:
       service-name: ${{ inputs.service-name }}
@@ -103,7 +102,6 @@ jobs:
     name: Image Sign
     needs: 
       - Image-Build-Job
-
     uses: ./.github/workflows/reusable-image-sign.yml
     with:
       service-name: ${{ inputs.service-name }}
@@ -112,6 +110,17 @@ jobs:
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
 
+  Generate-Attest-SBOM-Job:
+    name: Generate and Attest SBOM
+    needs:
+      - Image-Build-Job
+    uses: ./.github/workflows/reusable-sbom.yml
+    with:
+      service-name: ${{ inputs.service-name }}
+      runner: ${{ inputs.runner }}
+      image-with-digest: ${{ needs.Image-Build-Job.outputs.image_with_digest }}
+      aws-region: ${{ inputs.aws-region }}
+      aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
 
 
 

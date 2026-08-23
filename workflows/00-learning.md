@@ -52,3 +52,17 @@ _go-build.yml
       ├── Cosign Attest
       └── Upload SBOM Artifact
 ```
+
+## Main Workflow:  
+```text
+02-ci-backend.yml
+        │
+        ▼
+   _go-build.yml
+        │
+        ├── PR/SAST
+        ├── Dockerfile security
+        ├── Build + image scan + ECR
+        ├── Cosign signing
+        └── SBOM + attestation
+```

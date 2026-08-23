@@ -69,19 +69,19 @@ _go-build.yml
 
 ## For your security architecture:  
 ```text
-| Stage        | Tool         | Purpose                        |
-| ------------ | ------------ | ------------------------------ |
-| Dockerfile   | Hadolint     | Dockerfile best practices      |
-| Dockerfile   | Trivy config | Dockerfile misconfiguration    |
-| Dockerfile   | Conftest     | Organization-specific rules    |
-| Image        | Trivy        | Vulnerability scanning         |
-| Image        | Cosign       | Image signing                  |
-| Image        | Trivy        | CycloneDX SBOM                 |
-| Image        | Cosign       | SBOM attestation               |
-| Helm/K8s     | Trivy config | Kubernetes misconfiguration    |
-| Rendered K8s | Conftest/OPA | Organization-specific policies |
-| Rendered K8s | Kyverno CLI  | Same policies as admission     |
-| Cluster      | Kyverno      | Runtime admission enforcement  |
+| Stage        | Tool         | Purpose                        |  
+| ------------ | ------------ | ------------------------------ |  
+| Dockerfile   | Hadolint     | Dockerfile best practices      |  
+| Dockerfile   | Trivy config | Dockerfile misconfiguration    |  
+| Dockerfile   | Conftest     | Organization-specific rules    |  
+| Image        | Trivy        | Vulnerability scanning         |  
+| Image        | Cosign       | Image signing                  |  
+| Image        | Trivy        | CycloneDX SBOM                 |  
+| Image        | Cosign       | SBOM attestation               |  
+| Helm/K8s     | Trivy config | Kubernetes misconfiguration    |  
+| Rendered K8s | Conftest/OPA | Organization-specific policies |  
+| Rendered K8s | Kyverno CLI  | Same policies as admission     |  
+| Cluster      | Kyverno      | Runtime admission enforcement  |  
 ```
 
 ## Application repository:  

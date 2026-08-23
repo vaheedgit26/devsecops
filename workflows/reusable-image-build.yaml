@@ -142,7 +142,8 @@ jobs:
           IMAGE_WITH_DIGEST="${{ inputs.ecr-registry }}/${{ inputs.ecr-repository }}@$DIGEST"
 
           echo "Pushed: $IMAGE_WITH_TAG  (digest: $DIGEST)"
+          
           echo "image_digest=$DIGEST" >> "$GITHUB_OUTPUT"
-
-          echo "image_with_tag=$IMAGE_WITH_TAG" >> "$GITHUB_OUTPUT"
           echo "image_with_digest=$IMAGE_WITH_DIGEST" >> "$GITHUB_OUTPUT"  
+          echo "image_with_tag=$IMAGE_WITH_TAG" >> "$GITHUB_OUTPUT"
+          

@@ -1,0 +1,78 @@
+name: Reusable - SBOM
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        required: true
+        type: string
+
+      runner:
+        description: "Runner label"
+        required: false
+        type: string
+        default: ubuntu-latest
+
+      image-with-digest:
+        description: "Complete image reference with digest"
+        required: true
+        type: string
+
+      aws-region:
+        description: "AWS Region"
+        required: true
+        type: string
+
+      aws-ecr-role-arn:
+        description: "Complete AWS ECR Role ARN"
+        required: true
+        type: string
+
+jobs:
+
+  Generate-Attest-SBOM:
+    name: Generate and Attest SBOM
+    runs-on: ${{ inputs.runner }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.aws-ecr-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Generate SBOM - CycloneDX
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          version: v0.72.0
+          image-ref: ${{ inputs.image-with-digest }}
+          format: cyclonedx
+          output: sbom-image-${{ inputs.service-name }}-cdx.json
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: SBOM Attestation
+        run: |
+          cosign attest --yes \
+            --predicate sbom-image-${{ inputs.service-name }}-cdx.json \
+            --type cyclonedx \
+            "${{ inputs.image-with-digest }}"
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-image-${{ inputs.service-name }}
+          path: sbom-image-${{ inputs.service-name }}-cdx.json
+          retention-days: 1

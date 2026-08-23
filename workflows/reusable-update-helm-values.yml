@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: ${{ inputs.gitops-repo }}
-          token: ${{ secrets.GITOPS_TOKEN }}
+          # token: ${{ secrets.GITOPS_TOKEN }}
           path: _gitops   
 
       - name: Verify values file

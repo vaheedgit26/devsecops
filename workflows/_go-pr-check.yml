@@ -10,37 +10,37 @@ on:
 
       runner:
         description: "Runner label"
-        required: false
+        required: true
         type: string
         default: ubuntu-latest
 
       sonarqube-scan:
         description: "Enable SonarQube Scan"
-        required: false
+        required: true
         type: boolean
         default: false
 
       sonar-host-url:
         description: "Sonarqube Host Url"
-        required: false
+        required: true
         type: string
         default: ""
 
       gitleaks-scan:
         description: "Enable Gitleaks Scan"
-        required: false
+        required: true
         type: boolean
         default: false
 
       trivy-fs-scan:
         description: "Enable Trivy FS Scan"
-        required: false
+        required: true
         type: boolean
         default: false
 
       codeql-scan:
         description: "Enable Codeql Scan"
-        required: false
+        required: true
         type: boolean
         default: false
         

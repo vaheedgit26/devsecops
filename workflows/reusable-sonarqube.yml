@@ -4,10 +4,12 @@ on:
   workflow_call:
     inputs:
       service-name:
+        description: "Service Name"
         required: true
         type: string
       
       sonar-host-url:
+        description: "Sonar Host Url"
         required: true
         type: string
 

@@ -83,6 +83,7 @@ _go-build.yml
 | Rendered K8s | Kyverno CLI  | Same policies as admission     |
 | Cluster      | Kyverno      | Runtime admission enforcement  |
 ```
+
 ## Application repository:  
 ```text
 application-repo/

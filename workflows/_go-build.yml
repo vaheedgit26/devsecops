@@ -5,85 +5,106 @@ on:
   workflow_call:
     inputs:
       service-name:
+        description: "Service Name"
         required: true
         type: string
 
       runner:
         description: "Runner label"
-        required: false
+        required: true
         type: string
         default: ubuntu-latest
 
       # ---------------- SonarQube ------------------------- #
       sonarqube-scan:
-        required: false
+        description: "Enable Sonarqube Scan"
+        required: true
         type: boolean
         default: false
 
       sonar-host-url:
-        required: false
+        description: "Sonarqube Host Url"
+        required: true
         type: string
+        default: ""
+      # --------------- Dockerfile Scan --------------------- #
+      dockerfile-scan:
+        description: "Enable Dockerfile Scan"
+        required: true
+        type: boolean
+        default: false
 
-      # --------------- Image Build ------------------------- #
       dockerfile:
         description: "Path to Dockerfile"
         required: true
         type: string
+        default: ""
 
       build-context:
         description: "Image build context"
         required: true
         type: string
-
+        default: ""
+      # --------------- Image Build ------------------------- #
+      image-build:
+        description: "Enable Image Build"
+        required: true
+        type: boolean
+        default: false
       # --------------- Image Scans ------------------------- #
       hadolint-scan:
         description: "Enable Hadolint Dockerfile Scan"
-        required: false
+        required: true
         type: boolean
         default: false
 
       trivy-scan:
         description: "Enable Hadolint Dockerfile Scan"
-        required: false
+        required: true
         type: boolean
         default: false
 
       opa-conftest-scan:
         description: "Enable Trivy Dockerfile Scan"
-        required: false
+        required: true
         type: boolean
         default: false
       # ----------------------------------------------------- #
-        
       ecr-registry:
         description: "ECR Registry URL"
         required: true
         type: string
+        default: ""
 
       ecr-repository:
         description: "ECR Repository"
         required: true
         type: string
+        default: ""
 
       aws-region:
         description: "AWS Region to push Docker Image"
         required: true
         type: string
+        default: ""
 
       aws-ecr-role-arn:
         description: "Role ARN to push ECR Image"
         required: true
         type: string
+        default: ""
 
       image-sign:
         description: "Enable Image Signing"
-        required: false
+        required: true
         type: boolean
+        default: false
 
       image-sbom:
         description: "Enable SBOM generation"
-        required: false
+        required: true
         type: boolean
+        default: false
 
     secrets:
       SONAR_TOKEN:
@@ -104,6 +125,7 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   Dockerfile-Scan-Job:
+    if: ${{ inputs.dockerfile-scan }}
     name: Dockerfile Scan Job
     uses: ./.github/workflows/reusable-dockerfile-scan.yml
     with:
@@ -115,6 +137,7 @@ jobs:
       opa-conftest-scan: ${{ inputs.opa-conftest-scan }}
 
   Image-Build-Job:
+    if: ${{ inputs.image-build }}
     name: Docker Image Build Job
     needs:
       - Pr-Check-Job

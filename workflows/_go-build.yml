@@ -15,7 +15,7 @@ on:
         type: string
         default: ubuntu-latest
 
-      # ---------------- SonarQube ------------------------- #
+      # ---------------- Scans ------------------------- #
       sonarqube-scan:
         description: "Enable Sonarqube Scan"
         required: true
@@ -27,7 +27,25 @@ on:
         required: true
         type: string
         default: ""
-      # --------------- Dockerfile Scan --------------------- #
+
+      gitleaks-scan:
+        description: "Enable Gitleaks Scan"
+        required: true
+        type: boolean
+        default: false
+        
+      trivy-fs-scan:
+        description: "Enable Trivy FS Scan"
+        required: true
+        type: boolean
+        default: false
+        
+      codeql-scan:
+        description: "Enable CodeQL Scan"
+        required: true
+        type: boolean
+        default: false
+      # --------------- Dockerfile $ Scans --------------------- #
       dockerfile-scan:
         description: "Enable Dockerfile Scan"
         required: true
@@ -45,27 +63,27 @@ on:
         required: true
         type: string
         default: ""
+
+      hadolint-dockerfile-scan:
+        description: "Enable Hadolint Dockerfile Scan"
+        required: true
+        type: boolean
+        default: false
+
+      trivy-dockerfile-scan:
+        description: "Enable Trivy Dockerfile Scan"
+        required: true
+        type: boolean
+        default: false
+
+      opa-conftest-dockerfile-scan:
+        description: "Enable OPA conftest Dockerfile Scan"
+        required: true
+        type: boolean
+        default: false
       # --------------- Image Build ------------------------- #
       image-build:
         description: "Enable Image Build"
-        required: true
-        type: boolean
-        default: false
-      # --------------- Image Scans ------------------------- #
-      hadolint-scan:
-        description: "Enable Hadolint Dockerfile Scan"
-        required: true
-        type: boolean
-        default: false
-
-      trivy-scan:
-        description: "Enable Hadolint Dockerfile Scan"
-        required: true
-        type: boolean
-        default: false
-
-      opa-conftest-scan:
-        description: "Enable Trivy Dockerfile Scan"
         required: true
         type: boolean
         default: false
@@ -120,6 +138,9 @@ jobs:
       runner: ${{ inputs.runner }}
       sonarqube-scan: ${{ inputs.sonarqube-scan }}
       sonar-host-url: ${{ inputs.sonar-host-url }}
+      gitleaks-scan: ${{ inputs.gitleaks-scan }}
+      trivy-fs-scan: ${{ inputs.trivy-fs-scan }}
+      codeql-scan: ${{ inputs.codeql-scan }}
 
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -132,9 +153,9 @@ jobs:
       service-name: ${{ inputs.service-name }}
       runner: ${{ inputs.runner }}
       dockerfile: ${{ inputs.dockerfile }}
-      hadolint-scan: ${{ inputs.hadolint-scan }}
-      trivy-scan: ${{ inputs.trivy-scan }}
-      opa-conftest-scan: ${{ inputs.opa-conftest-scan }}
+      hadolint-dockerfile-scan: ${{ inputs.hadolint-scan }}
+      trivy-dockerfile-scan: ${{ inputs.trivy-scan }}
+      opa-conftest-dockerfile-scan: ${{ inputs.opa-conftest-scan }}
 
   Image-Build-Job:
     if: ${{ inputs.image-build }}

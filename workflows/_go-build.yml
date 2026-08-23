@@ -16,18 +16,6 @@ on:
         default: ubuntu-latest
 
       # ---------------- Scans ------------------------- #
-      sonarqube-scan:
-        description: "Enable Sonarqube Scan"
-        required: true
-        type: boolean
-        default: false
-
-      sonar-host-url:
-        description: "Sonarqube Host Url"
-        required: true
-        type: string
-        default: ""
-
       gitleaks-scan:
         description: "Enable Gitleaks Scan"
         required: true
@@ -45,6 +33,19 @@ on:
         required: true
         type: boolean
         default: false
+
+      sonarqube-scan:
+        description: "Enable Sonarqube Scan"
+        required: true
+        type: boolean
+        default: false
+
+      sonar-host-url:
+        description: "Sonarqube Host Url"
+        required: true
+        type: string
+        default: ""
+
       # --------------- Dockerfile $ Scans --------------------- #
       dockerfile-scan:
         description: "Enable Dockerfile Scan"

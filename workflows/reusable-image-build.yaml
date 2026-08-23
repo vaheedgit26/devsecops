@@ -96,7 +96,6 @@ jobs:
             "${{ inputs.build-context }}"
 
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "image_with_tag=$IMAGE_WITH_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Verify AWS CLI

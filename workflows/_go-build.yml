@@ -75,12 +75,12 @@ on:
         required: true
         type: string
 
-      enable-image-sign:
+      image-sign:
         description: "Enable Image Signing"
         required: false
         type: boolean
 
-      enable-image-sbom:
+      image-sbom:
         description: "Enable SBOM generation"
         required: false
         type: boolean
@@ -131,7 +131,7 @@ jobs:
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
 
   Image-Sign-Job:
-    if: ${{ inputs.enable-image-sign }}
+    if: ${{ inputs.image-sign }}
     name: Image Sign
     needs: 
       - Image-Build-Job
@@ -144,7 +144,7 @@ jobs:
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
 
   Generate-Attest-SBOM-Job:
-    if: ${{ inputs.enable-image-sbom }}
+    if: ${{ inputs.image-sbom }}
     name: Generate and Attest SBOM
     needs:
       - Image-Build-Job

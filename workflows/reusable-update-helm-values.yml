@@ -12,8 +12,7 @@ on:
         description: "Runner label"
         required: true
         type: string
-        default: ubuntu-latest
-
+        
       gitops-repo:
         description: "GiOps Repository"
         required: true

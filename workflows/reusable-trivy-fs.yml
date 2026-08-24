@@ -12,7 +12,6 @@ on:
         description: "Runner label"
         required: false
         type: string
-        default: ubuntu-latest
         
 jobs:
   Trivy-Fs-Scan-Job:

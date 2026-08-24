@@ -1,9 +1,18 @@
-# Reusable — Go Build + SAST + Container Security + ECR Push + Cosign Sign
+# =======================================================================================
+# Reusable — Go Build + SAST + Container Security + ECR Push + Cosign + SBOM + GitOps PR          
+# =======================================================================================
+
 name: Reusable — GO Build & Security Gates
 
 on:
   workflow_call:
+
     inputs:
+
+      # ======================================================
+      # General
+      # ======================================================
+
       service-name:
         description: "Service Name"
         required: true
@@ -15,40 +24,48 @@ on:
         type: string
         default: ubuntu-latest
 
-      # ---------------- Scans ------------------------- #
+
+      # ======================================================
+      # Application Scans
+      # ======================================================
+
       gitleaks-scan:
         description: "Enable Gitleaks Scan"
-        required: true
+        required: false
         type: boolean
         default: false
-        
+
       trivy-fs-scan:
         description: "Enable Trivy FS Scan"
-        required: true
+        required: false
         type: boolean
         default: false
-        
+
       codeql-scan:
         description: "Enable CodeQL Scan"
-        required: true
+        required: false
         type: boolean
         default: false
 
       sonarqube-scan:
-        description: "Enable Sonarqube Scan"
-        required: true
+        description: "Enable SonarQube Scan"
+        required: false
         type: boolean
         default: false
 
       sonar-host-url:
-        description: "Sonarqube Host Url"
-        required: true
+        description: "SonarQube Host URL"
+        required: false
         type: string
         default: ""
 
-      # --------------- Dockerfile $ Scans --------------------- #
+
+      # ======================================================
+      # Dockerfile Scans
+      # ======================================================
+
       dockerfile-scan:
-        description: "Enable Dockerfile Scan"
+        description: "Enable Dockerfile Scanning"
         required: true
         type: boolean
         default: false
@@ -57,13 +74,11 @@ on:
         description: "Path to Dockerfile"
         required: true
         type: string
-        default: ""
 
       build-context:
-        description: "Image build context"
+        description: "Docker build context"
         required: true
         type: string
-        default: ""
 
       hadolint-dockerfile-scan:
         description: "Enable Hadolint Dockerfile Scan"
@@ -78,40 +93,46 @@ on:
         default: false
 
       opa-conftest-dockerfile-scan:
-        description: "Enable OPA conftest Dockerfile Scan"
+        description: "Enable OPA Conftest Dockerfile Scan"
         required: true
         type: boolean
         default: false
-      # --------------- Image Build ------------------------- #
+
+
+      # ======================================================
+      # Image Build
+      # ======================================================
+
       image-build:
         description: "Enable Image Build"
         required: true
         type: boolean
         default: false
-      # ----------------------------------------------------- #
+
       ecr-registry:
         description: "ECR Registry URL"
         required: true
         type: string
-        default: ""
 
       ecr-repository:
         description: "ECR Repository"
         required: true
         type: string
-        default: ""
 
       aws-region:
-        description: "AWS Region to push Docker Image"
+        description: "AWS Region"
         required: true
         type: string
-        default: ""
 
       aws-ecr-role-arn:
-        description: "Role ARN to push ECR Image"
+        description: "AWS ECR Role ARN"
         required: true
         type: string
-        default: ""
+
+
+      # ======================================================
+      # Image Security
+      # ======================================================
 
       image-sign:
         description: "Enable Image Signing"
@@ -120,18 +141,16 @@ on:
         default: false
 
       image-sbom:
-        description: "Enable SBOM generation"
+        description: "Enable SBOM Generation and Attestation"
         required: true
         type: boolean
         default: false
 
-      helm-values-file:
-        description: "Helm Values File"
-        required: true
-        type: string
-        default: ""
 
-      # --------------- Helm Values Update ----------------------- #
+      # ======================================================
+      # GitOps
+      # ======================================================
+
       gitops-repo:
         description: "GitOps Repository"
         required: true
@@ -142,107 +161,180 @@ on:
         required: true
         type: string
 
-      image:
-        description: "Container image repository"
-        required: true
-        type: string
 
-      image-digest:
-        description: "Image Digest"
-        required: true
-        type: string
-    
-    # --------------------------- Secrets ------------------------ # 
+    # ==========================================================
+    # Secrets
+    # ==========================================================
+
     secrets:
+
       SONAR_TOKEN:
         required: false
 
       GITOPS_TOKEN:
         required: true
 
+
 jobs:
+
+  # ============================================================
+  # 1. PR CHECK
+  # ============================================================
 
   Pr-Check-Job:
     name: PR Check Job
+
     uses: ./.github/workflows/_go-pr-check.yml
+
     with:
       service-name: ${{ inputs.service-name }}
       runner: ${{ inputs.runner }}
-      sonarqube-scan: ${{ inputs.sonarqube-scan }}
-      sonar-host-url: ${{ inputs.sonar-host-url }}
+
       gitleaks-scan: ${{ inputs.gitleaks-scan }}
       trivy-fs-scan: ${{ inputs.trivy-fs-scan }}
       codeql-scan: ${{ inputs.codeql-scan }}
 
+      sonarqube-scan: ${{ inputs.sonarqube-scan }}
+      sonar-host-url: ${{ inputs.sonar-host-url }}
+
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+
+  # ============================================================
+  # 2. DOCKERFILE SCAN
+  # ============================================================
+
   Dockerfile-Scan-Job:
-    if: ${{ inputs.dockerfile-scan }}
     name: Dockerfile Scan Job
+
+    if: ${{ inputs.dockerfile-scan }}
+
     uses: ./.github/workflows/reusable-dockerfile-scan.yml
+
     with:
       service-name: ${{ inputs.service-name }}
       runner: ${{ inputs.runner }}
+
       dockerfile: ${{ inputs.dockerfile }}
-      hadolint-dockerfile-scan: ${{ inputs.hadolint-scan }}
-      trivy-dockerfile-scan: ${{ inputs.trivy-scan }}
-      opa-conftest-dockerfile-scan: ${{ inputs.opa-conftest-scan }}
+
+      hadolint-dockerfile-scan:
+        ${{ inputs.hadolint-dockerfile-scan }}
+
+      trivy-dockerfile-scan:
+        ${{ inputs.trivy-dockerfile-scan }}
+
+      opa-conftest-dockerfile-scan:
+        ${{ inputs.opa-conftest-dockerfile-scan }}
+
+
+  # ============================================================
+  # 3. BUILD + SCAN + PUSH IMAGE
+  # ============================================================
 
   Image-Build-Scan-Push-Job:
-    if: ${{ inputs.image-build }}
     name: Docker Image Build-Scan-Push Job
+
+    if: ${{ inputs.image-build }}
+
     needs:
       - Pr-Check-Job
       - Dockerfile-Scan-Job
+
     uses: ./.github/workflows/reusable-image-build.yaml
+
     with:
       service-name: ${{ inputs.service-name }}
       runner: ${{ inputs.runner }}
+
       dockerfile: ${{ inputs.dockerfile }}
       build-context: ${{ inputs.build-context }}
+
       ecr-registry: ${{ inputs.ecr-registry }}
       ecr-repository: ${{ inputs.ecr-repository }}
+
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
+
+
+  # ============================================================
+  # 4. COSIGN IMAGE SIGNING
+  # ============================================================
 
   Image-Sign-Job:
-    if: ${{ inputs.image-sign }}
     name: Image Sign
-    needs: 
-      - Image-Build-Scan-Push-Job
-    uses: ./.github/workflows/reusable-image-sign.yml
-    with:
-      service-name: ${{ inputs.service-name }}
-      runner: ${{ inputs.runner }}
-      image-with-digest: ${{ needs.Image-Build-Job.outputs.image_with_digest }}
-      aws-region: ${{ inputs.aws-region }}
-      aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
 
-  Generate-Attest-SBOM-Job:
-    if: ${{ inputs.image-sbom }}
-    name: Generate and Attest SBOM
+    if: ${{ inputs.image-sign }}
+
     needs:
       - Image-Build-Scan-Push-Job
-    uses: ./.github/workflows/reusable-sbom.yml
+
+    uses: ./.github/workflows/reusable-image-sign.yml
+
     with:
       service-name: ${{ inputs.service-name }}
       runner: ${{ inputs.runner }}
-      image-with-digest: ${{ needs.Image-Build-Job.outputs.image_with_digest }}
+
+      image-with-digest:
+        ${{ needs.Image-Build-Scan-Push-Job.outputs.image_with_digest }}
+
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
 
-  Update-Helm-Values-Pr-Job:
-  name: Update Helm Values and create PR
-  needs:
-    - Image-Build-Scan-Push-Job
-  uses: ./.github/workflows/reusable-update-helm-values.yml
-  with:
-    service-name: ${{ inputs.service-name }}
-    runner: ${{ inputs.runner }}
-    gitops-repo: ${{ inputs.gitops-repo }}
-    helm-values-file: ${{ inputs.helm-values-file }}  # envs/dev/backend/values.yaml
-    image: ${{ needs.Image-Build-Scan-Push-Job.outputs.image }}
-    image-digest: ${{ needs.Image-Build-Scan-Push-Job.outputs.image_digest }}
 
-  
+  # ============================================================
+  # 5. SBOM GENERATION + ATTESTATION
+  # ============================================================
+
+  Generate-Attest-SBOM-Job:
+    name: Generate and Attest SBOM
+
+    if: ${{ inputs.image-sbom }}
+
+    needs:
+      - Image-Build-Scan-Push-Job
+
+    uses: ./.github/workflows/reusable-sbom.yml
+
+    with:
+      service-name: ${{ inputs.service-name }}
+      runner: ${{ inputs.runner }}
+
+      image-with-digest:
+        ${{ needs.Image-Build-Scan-Push-Job.outputs.image_with_digest }}
+
+      aws-region: ${{ inputs.aws-region }}
+      aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
+
+
+  # ============================================================
+  # 6. UPDATE GITOPS + CREATE PR
+  # ============================================================
+
+  Update-Helm-Values-Pr-Job:
+    name: Update Helm Values and Create PR
+
+    if: ${{ inputs.image-build }}
+
+    needs:
+      - Image-Build-Scan-Push-Job
+
+    uses: ./.github/workflows/reusable-update-helm-values.yml
+
+    with:
+      service-name: ${{ inputs.service-name }}
+      runner: ${{ inputs.runner }}
+
+      gitops-repo: ${{ inputs.gitops-repo }}
+
+      helm-values-file:
+        ${{ inputs.helm-values-file }}
+
+      image:
+        ${{ needs.Image-Build-Scan-Push-Job.outputs.image }}
+
+      image-digest:
+        ${{ needs.Image-Build-Scan-Push-Job.outputs.image_digest }}
+
+    secrets:
+      GITOPS_TOKEN: ${{ secrets.GITOPS_TOKEN }}

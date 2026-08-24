@@ -61,16 +61,16 @@ jobs:
         with:
           repository: ${{ inputs.gitops-repo }}
           token: ${{ secrets.GITOPS_TOKEN }}
-          path: _gitops   
+          path: ${{ env.GITOPS_DIR }}
           
       # --------------------------------------------------
       # Verify helm values file
       # --------------------------------------------------
       
       - name: Verify values file
-        working-directory: "$GITOPS_DIR"
+        # working-directory: "$GITOPS_DIR"
         run: |
-          if [ ! -f "$GITOPS_DIR/$VALUES_FILE"]; then
+          if [ ! -f "$GITOPS_DIR/$VALUES_FILE" ]; then
             echo "ERROR: Values file not found: $GITOPS_DIR/$VALUES_FILE"
             exit 1
           fi
@@ -83,7 +83,7 @@ jobs:
       - name: Print DIGEST and IMAGE WITH DIGEST
         run: |
           echo "Image DIGEST: ${{ inputs.image-digest }}"
-          echo "Image with DIGEST: ${{ inputs.image-with-digest }}
+          echo "Image with DIGEST: ${{ inputs.image-with-digest }}"
           
       # --------------------------------------------------
       # Update Helm values
@@ -91,17 +91,16 @@ jobs:
       
       - name: Update image DIGEST in manifest
         run: |
-          VALUES_FILE="${{ inputs.helm-values-file }}"
           IMAGE="${{ inputs.image }}"
-          DIGEST=${{ inputs.image-digest }}
+          DIGEST="${{ inputs.image-digest }}"
 
           echo "-----------Updating:---------------"
-          echo "  File   : $VALUES_FILE"
+          echo "  File   : $GITOPS_DIR/$VALUES_FILE"
           echo "  Image  : $IMAGE"
           echo "  Digest : $DIGEST"
           echo "-----------------------------------"
           
-          sed -i "s|digest: .*|digest: $DIGEST|g" $VALUES_FILE
+          sed -i "s|digest: .*|digest: $DIGEST|g" $GITOPS_DIR/$VALUES_FILE
 
       # --------------------------------------------------
       # Show updated values
@@ -109,14 +108,14 @@ jobs:
       
       - name: Show updated manifest (debug)
         run: |
-          cat "${{ inputs.helm-values-file }}"
+          cat "$GITOPS_DIR/$VALUES_FILE"
           
       # --------------------------------------------------
       # Show changes
       # --------------------------------------------------
       
       - name: Show Git diff
-        run: git diff -- "${{ inputs.helm-values-file }}"
+        run: git diff -- "$GITOPS_DIR/$VALUES_FILE"
 
       # --------------------------------------------------
       # Create GitOps Branch
@@ -139,7 +138,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add "${{ inputs.helm-values-file }}"
+          git add "$GITOPS_DIR/$VALUES_FILE"
 
           if git diff --cached --quiet; then
             echo "No changes detected."
@@ -160,15 +159,17 @@ jobs:
           GITOPS_REPO: ${{ inputs.gitops-repo }}
           BRANCH: ${{ steps.branch.outputs.branch }}
           SERVICE_NAME: ${{ inputs.service-name }}
-          IMAGE: ${{ steps.image.outputs.image }}
-          DIGEST: ${{ steps.image.outputs.digest }}
+          IMAGE: ${{ inputs.image }}
+          DIGEST: ${{ inputs.digest }}
         run: |
           gh pr create \
             --repo "$GITOPS_REPO" \
             --head "$BRANCH" \
             --base main \
             --title "chore: update $SERVICE_NAME image" \
-            --body "## Image Update
+            --body "(cat <<EOF 
+            
+          ## Image Update
 
           **Service:** $SERVICE_NAME
 
@@ -176,9 +177,13 @@ jobs:
 
           **Digest:** $DIGEST
 
-          This PR was automatically created by the CI pipeline.
+          This PR was automatically created by the **CI pipeline**.
 
-          After merge, Argo CD will reconcile the updated Helm values."
+          *After merge*, Argo CD will reconcile the updated Helm values."
+
+          EOF 
+          )"
+          
 
 
 

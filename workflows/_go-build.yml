@@ -131,9 +131,33 @@ on:
         type: string
         default: ""
 
+      # --------------- Helm Values Update ----------------------- #
+      gitops-repo:
+        description: "GitOps Repository"
+        required: true
+        type: string
+
+      helm-values-file:
+        description: "Path to Helm values.yaml inside GitOps repo"
+        required: true
+        type: string
+
+      image:
+        description: "Container image repository"
+        required: true
+        type: string
+
+      image-digest:
+        description: "Image Digest"
+        required: true
+        type: string
+     
     secrets:
       SONAR_TOKEN:
         required: false
+
+      GITOPS_TOKEN:
+        required: true
 
 jobs:
 
@@ -164,9 +188,9 @@ jobs:
       trivy-dockerfile-scan: ${{ inputs.trivy-scan }}
       opa-conftest-dockerfile-scan: ${{ inputs.opa-conftest-scan }}
 
-  Image-Build-Job:
+  Image-Build-Scan-Push-Job:
     if: ${{ inputs.image-build }}
-    name: Docker Image Build Job
+    name: Docker Image Build-Scan-Push Job
     needs:
       - Pr-Check-Job
       - Dockerfile-Scan-Job
@@ -185,7 +209,7 @@ jobs:
     if: ${{ inputs.image-sign }}
     name: Image Sign
     needs: 
-      - Image-Build-Job
+      - Image-Build-Scan-Push-Job
     uses: ./.github/workflows/reusable-image-sign.yml
     with:
       service-name: ${{ inputs.service-name }}
@@ -198,7 +222,7 @@ jobs:
     if: ${{ inputs.image-sbom }}
     name: Generate and Attest SBOM
     needs:
-      - Image-Build-Job
+      - Image-Build-Scan-Push-Job
     uses: ./.github/workflows/reusable-sbom.yml
     with:
       service-name: ${{ inputs.service-name }}
@@ -207,13 +231,17 @@ jobs:
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
 
-  Update-Helm-Values-Job:
-  name: Update Helm Values
+  Update-Helm-Values-Pr-Job:
+  name: Update Helm Values and create PR
   needs:
-    - Image-Build-Job
+    - Image-Build-Scan-Push-Job
   uses: ./.github/workflows/reusable-update-helm-values.yml
   with:
     service-name: ${{ inputs.service-name }}
     runner: ${{ inputs.runner }}
-    values-file: ${{ inputs.helm-values-file }} #envs/dev/backend/values.yaml
-    digest: ${{ needs.Image-Build-Job.outputs.image_digest }}
+    gitops-repo: ${{ inputs.gitops-repo }}
+    helm-values-file: ${{ inputs.helm-values-file }}  # envs/dev/backend/values.yaml
+    image: ${{ needs.Image-Build-Scan-Push-Job.outputs.image }}
+    image-digest: ${{ needs.Image-Build-Scan-Push-Job.outputs.image_digest }}
+
+  

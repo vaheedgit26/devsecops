@@ -24,7 +24,6 @@ on:
         type: string
         default: ubuntu-latest
 
-
       # ======================================================
       # Application Scans
       # ======================================================
@@ -59,45 +58,43 @@ on:
         type: string
         default: ""
 
-
       # ======================================================
       # Dockerfile Scans
       # ======================================================
 
       dockerfile-scan:
         description: "Enable Dockerfile Scanning"
-        required: true
+        required: false
         type: boolean
         default: false
 
       dockerfile:
         description: "Path to Dockerfile"
-        required: true
+        required: false
         type: string
 
       build-context:
         description: "Docker build context"
-        required: true
+        required: false
         type: string
 
       hadolint-dockerfile-scan:
         description: "Enable Hadolint Dockerfile Scan"
-        required: true
+        required: false
         type: boolean
         default: false
 
       trivy-dockerfile-scan:
         description: "Enable Trivy Dockerfile Scan"
-        required: true
+        required: false
         type: boolean
         default: false
 
       opa-conftest-dockerfile-scan:
         description: "Enable OPA Conftest Dockerfile Scan"
-        required: true
+        required: false
         type: boolean
         default: false
-
 
       # ======================================================
       # Image Build
@@ -105,30 +102,33 @@ on:
 
       image-build:
         description: "Enable Image Build"
-        required: true
+        required: false
         type: boolean
         default: false
 
       ecr-registry:
         description: "ECR Registry URL"
-        required: true
+        required: false
         type: string
+        default: ""
 
       ecr-repository:
         description: "ECR Repository"
-        required: true
+        required: false
         type: string
+        default: ""
 
       aws-region:
         description: "AWS Region"
-        required: true
+        required: false
         type: string
+        default: ""
 
       aws-ecr-role-arn:
         description: "AWS ECR Role ARN"
-        required: true
+        required: false
         type: string
-
+        default: ""
 
       # ======================================================
       # Image Security
@@ -136,16 +136,15 @@ on:
 
       image-sign:
         description: "Enable Image Signing"
-        required: true
+        required: false
         type: boolean
         default: false
 
       image-sbom:
         description: "Enable SBOM Generation and Attestation"
-        required: true
+        required: false
         type: boolean
         default: false
-
 
       # ======================================================
       # GitOps
@@ -153,14 +152,15 @@ on:
 
       gitops-repo:
         description: "GitOps Repository"
-        required: true
+        required: false
         type: string
+        default: ""
 
       helm-values-file:
         description: "Path to Helm values.yaml inside GitOps repo"
-        required: true
+        required: false
         type: string
-
+        default: ""
 
     # ==========================================================
     # Secrets
@@ -200,7 +200,6 @@ jobs:
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-
   # ============================================================
   # 2. DOCKERFILE SCAN
   # ============================================================
@@ -218,16 +217,10 @@ jobs:
 
       dockerfile: ${{ inputs.dockerfile }}
 
-      hadolint-dockerfile-scan:
-        ${{ inputs.hadolint-dockerfile-scan }}
-
-      trivy-dockerfile-scan:
-        ${{ inputs.trivy-dockerfile-scan }}
-
-      opa-conftest-dockerfile-scan:
-        ${{ inputs.opa-conftest-dockerfile-scan }}
-
-
+      hadolint-dockerfile-scan: ${{ inputs.hadolint-dockerfile-scan }}     
+      trivy-dockerfile-scan: ${{ inputs.trivy-dockerfile-scan }}        
+      opa-conftest-dockerfile-scan: ${{ inputs.opa-conftest-dockerfile-scan }}
+        
   # ============================================================
   # 3. BUILD + SCAN + PUSH IMAGE
   # ============================================================
@@ -256,7 +249,6 @@ jobs:
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
 
-
   # ============================================================
   # 4. COSIGN IMAGE SIGNING
   # ============================================================
@@ -275,12 +267,10 @@ jobs:
       service-name: ${{ inputs.service-name }}
       runner: ${{ inputs.runner }}
 
-      image-with-digest:
-        ${{ needs.Image-Build-Scan-Push-Job.outputs.image_with_digest }}
-
+      image-with-digest: ${{ needs.Image-Build-Scan-Push-Job.outputs.image_with_digest }}
+        
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
-
 
   # ============================================================
   # 5. SBOM GENERATION + ATTESTATION
@@ -300,12 +290,10 @@ jobs:
       service-name: ${{ inputs.service-name }}
       runner: ${{ inputs.runner }}
 
-      image-with-digest:
-        ${{ needs.Image-Build-Scan-Push-Job.outputs.image_with_digest }}
-
+      image-with-digest: ${{ needs.Image-Build-Scan-Push-Job.outputs.image_with_digest }}
+        
       aws-region: ${{ inputs.aws-region }}
       aws-ecr-role-arn: ${{ inputs.aws-ecr-role-arn }}
-
 
   # ============================================================
   # 6. UPDATE GITOPS + CREATE PR
@@ -327,14 +315,9 @@ jobs:
 
       gitops-repo: ${{ inputs.gitops-repo }}
 
-      helm-values-file:
-        ${{ inputs.helm-values-file }}
-
-      image:
-        ${{ needs.Image-Build-Scan-Push-Job.outputs.image }}
-
-      image-digest:
-        ${{ needs.Image-Build-Scan-Push-Job.outputs.image_digest }}
-
+      helm-values-file: ${{ inputs.helm-values-file }}
+      image: ${{ needs.Image-Build-Scan-Push-Job.outputs.image }}        
+      image-digest: ${{ needs.Image-Build-Scan-Push-Job.outputs.image_digest }}
+        
     secrets:
       GITOPS_TOKEN: ${{ secrets.GITOPS_TOKEN }}

@@ -263,3 +263,31 @@ GitOps PR
       ▼
    Kyverno
 ```
+
+## 10. Directory Structure:  
+```text
+gitops-repo/
+│
+├── charts/
+│   └── backend/
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       └── templates/
+│           ├── deployment.yaml
+│           ├── service.yaml
+│           └── ingress.yaml
+│
+├── envs/
+│   ├── dev/
+│   │   └── values-backend.yaml
+│   │
+│   ├── qa/
+│   │   └── values-backend.yaml
+│   │
+│   └── prod/
+│       └── values-backend.yaml
+│
+└── .github/
+    └── workflows/
+        └── gitops-ci.yml
+```

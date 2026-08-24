@@ -7,7 +7,7 @@ on:
     paths:
       - 'charts/**'
       - 'envs/**'
-      - '.github/workflows/gitops-ci.yml'
+      - '.github/workflows/gitops-ci-pr.yml'
 
 permissions:
   contents: read
@@ -34,7 +34,6 @@ jobs:
       - name: Checkout GitOps Repository
         uses: actions/checkout@v6
 
-
       # ======================================================
       # 2. Setup Helm
       # ======================================================
@@ -43,7 +42,6 @@ jobs:
         uses: azure/setup-helm@v4
         with:
           version: ${{ env.HELM_VERSION }}
-
 
       # ======================================================
       # 3. Helm Lint
@@ -54,7 +52,6 @@ jobs:
           helm lint \
             ./charts/backend \
             -f envs/dev/values-backend.yaml
-
 
       # ======================================================
       # 4. Render Helm Templates
@@ -71,7 +68,6 @@ jobs:
 
           echo "Helm rendering completed successfully."
 
-
       # ======================================================
       # 5. Show Rendered Kubernetes Manifests
       # ======================================================
@@ -83,7 +79,6 @@ jobs:
           echo "=================================================="
 
           cat rendered/backend/backend.yaml
-
 
       # ======================================================
       # 6. Install Kubeconform
@@ -113,7 +108,6 @@ jobs:
           echo "Kubeconform version:"
           kubeconform -v
 
-
       # ======================================================
       # 7. Kubeconform - Kubernetes Schema Validation
       # ======================================================
@@ -126,7 +120,6 @@ jobs:
             -output text \
             rendered/backend/backend.yaml
 
-
       # ======================================================
       # 8. Setup Trivy
       # ======================================================
@@ -135,7 +128,6 @@ jobs:
         uses: aquasecurity/setup-trivy@v0.2.6
         with:
           version: ${{ env.TRIVY_VERSION }}
-
 
       # ======================================================
       # 9. Trivy - Kubernetes Security Scan
@@ -149,7 +141,6 @@ jobs:
             --format table \
             rendered/
 
-
       # ======================================================
       # 10. Generate Trivy SARIF
       # ======================================================
@@ -162,7 +153,6 @@ jobs:
             --format sarif \
             --output trivy-kubernetes.sarif \
             rendered/
-
 
       # ======================================================
       # 11. Upload Trivy SARIF to GitHub Security

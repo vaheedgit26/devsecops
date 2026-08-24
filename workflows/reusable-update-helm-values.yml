@@ -10,7 +10,7 @@ on:
 
       runner:
         description: "Runner label"
-        required: false
+        required: true
         type: string
         default: ubuntu-latest
 
@@ -45,39 +45,151 @@ jobs:
     runs-on: ${{ inputs.runner }}
 
     permissions:
-      contents: write
+      contents: read
 
     steps:
+      # --------------------------------------------------
+      # Checkout GitOps repository
+      # --------------------------------------------------
+      
       - name: Checkout Code
         uses: actions/checkout@v6
         with:
           repository: ${{ inputs.gitops-repo }}
           # token: ${{ secrets.GITOPS_TOKEN }}
-          path: _gitops   
-
+          # path: _gitops   
+          
+      # --------------------------------------------------
+      # Verify helm values file
+      # --------------------------------------------------
+      
       - name: Verify values file
         run: |
-          if [ ! -f "${{ inputs.helm-values-file }}" ]; then
+          if [ ! -f "${{ inputs.helm-values-file }}"]; then
             echo "ERROR: Values file not found: ${{ inputs.helm-values-file }}"
             exit 1
           fi
+          echo "Values file found: $VALUES_FILE"
 
-          echo "Values file found: ${{ inputs.helm-values-file }}"
-
+      # --------------------------------------------------
+      # Image and Digest
+      # --------------------------------------------------
+      
       - name: Print DIGEST and IMAGE WITH DIGEST
         run: |
           echo "Image DIGEST: ${{ inputs.image-digest }}"
           echo "Image with DIGEST: ${{ inputs.image-with-digest }}
-
-      - name: Update image tag in manifest
+          
+      # --------------------------------------------------
+      # Update Helm values
+      # --------------------------------------------------
+      
+      - name: Update image DIGEST in manifest
         run: |
-          cd _gitops
-          sed -i "s|digest: .*|digest: $DIGEST|g" _gitops/envs/dev/values-backend.yaml
+          VALUES_FILE="${{ inputs.helm-values-file }}"
+          IMAGE="${{ inputs.image }}"
+          DIGEST=${{ inputs.image-digest }}
 
+          echo "-----------Updating:---------------"
+          echo "  File   : $VALUES_FILE"
+          echo "  Image  : $IMAGE"
+          echo "  Digest : $DIGEST"
+          echo "-----------------------------------"
+          
+          sed -i "s|digest: .*|digest: $DIGEST|g" $VALUES_FILE
+
+      # --------------------------------------------------
+      # Show updated values
+      # --------------------------------------------------    
+      
       - name: Show updated manifest (debug)
         run: |
-          cat _gitops/envs/dev/values-backend.yaml
-
+          cat "${{ inputs.helm-values-file }}"
+          
+      # --------------------------------------------------
+      # Show changes
+      # --------------------------------------------------
+      
       - name: Show Git diff
-        run: git diff -- "${{ inputs.values-file }}"
-        
+        run: git diff -- "${{ inputs.helm-values-file }}"
+
+      # --------------------------------------------------
+      # Create GitOps Branch
+      # --------------------------------------------------
+      
+      - name: Create GitOps Branch
+        id: branch
+        run: |
+          BRANCH="ci/update-${{ inputs.service-name }}-${GITHUB_SHA::7}"
+          
+          git checkout -b "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          
+      # --------------------------------------------------
+      # Commit & Push changes
+      # --------------------------------------------------
+      
+      - name: Commit Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add "${{ inputs.helm-values-file }}"
+
+          if git diff --cached --quiet; then
+            echo "No changes detected."
+            exit 0
+          fi
+
+          git commit -m "chore: update ${{ inputs.service-name }} image"
+
+          git push origin "${{ steps.branch.outputs.branch }}"
+
+      # --------------------------------------------------
+      # Create Pull Request
+      # --------------------------------------------------
+      
+      - name: Create GitOps Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITOPS_TOKEN }}
+          GITOPS_REPO: ${{ inputs.gitops-repo }}
+          BRANCH: ${{ steps.branch.outputs.branch }}
+          SERVICE_NAME: ${{ inputs.service-name }}
+          IMAGE: ${{ steps.image.outputs.image }}
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          gh pr create \
+            --repo "$GITOPS_REPO" \
+            --head "$BRANCH" \
+            --base main \
+            --title "chore: update $SERVICE_NAME image" \
+            --body "## Image Update
+
+          **Service:** $SERVICE_NAME
+
+          **Image:** $IMAGE
+
+          **Digest:** $DIGEST
+
+          This PR was automatically created by the CI pipeline.
+
+          After merge, Argo CD will reconcile the updated Helm values."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

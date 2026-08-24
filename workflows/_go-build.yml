@@ -151,7 +151,8 @@ on:
         description: "Image Digest"
         required: true
         type: string
-     
+    
+    # --------------------------- Secrets ------------------------ # 
     secrets:
       SONAR_TOKEN:
         required: false

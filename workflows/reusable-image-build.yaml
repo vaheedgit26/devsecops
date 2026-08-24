@@ -10,7 +10,7 @@ on:
         
       runner:
         description: "Runner label"
-        required: false
+        required: true
         type: string
         default: ubuntu-latest
       

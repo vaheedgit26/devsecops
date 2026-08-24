@@ -69,16 +69,15 @@ jobs:
       # --------------------------------------------------
 
       - name: Verify Values File
+        working-directory: ${{ env.GITOPS_DIR }}
         run: |
-          if [ ! -f "$GITOPS_DIR/$VALUES_FILE" ]; then
-            echo "ERROR: Values file not found:"
-            echo "$GITOPS_DIR/$VALUES_FILE"
+          if [ ! -f "$VALUES_FILE" ]; then
+            echo "ERROR: Values file not found: $VALUES_FILE"
             exit 1
           fi
 
-          echo "Values file found:"
-          echo "$GITOPS_DIR/$VALUES_FILE"
-
+          echo "Values file found: $VALUES_FILE"
+          
       # --------------------------------------------------
       # Print Image and Digest
       # --------------------------------------------------
@@ -93,26 +92,28 @@ jobs:
       # --------------------------------------------------
 
       - name: Update Image Digest
+        working-directory: ${{ env.GITOPS_DIR }}
         run: |
           IMAGE="${{ inputs.image }}"
           DIGEST="${{ inputs.image-digest }}"
 
           echo "----------- Updating ---------------"
-          echo "File   : $GITOPS_DIR/$VALUES_FILE"
+          echo "File   : $VALUES_FILE"
           echo "Image  : $IMAGE"
           echo "Digest : $DIGEST"
           echo "------------------------------------"
 
-          sed -i "s|digest: .*|digest: $DIGEST|g" \
-            "$GITOPS_DIR/$VALUES_FILE"
+          sed -i "s|digest: .*|digest: $DIGEST|g" "$VALUES_FILE"
+            
 
       # --------------------------------------------------
       # Show updated values
       # --------------------------------------------------
 
       - name: Show Updated Values
+        working-directory: ${{ env.GITOPS_DIR }}
         run: |
-          cat "$GITOPS_DIR/$VALUES_FILE"
+          cat "$VALUES_FILE"
 
       # --------------------------------------------------
       # Show Git diff
@@ -156,9 +157,8 @@ jobs:
             exit 0
           fi
 
-          git commit \
-            -m "chore(gitops): update ${{ inputs.service-name }} image"
-
+          git commit -m "chore(gitops): update ${{ inputs.service-name }} image"
+            
           git push origin "${{ steps.branch.outputs.branch }}"
 
       # --------------------------------------------------

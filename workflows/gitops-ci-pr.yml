@@ -11,12 +11,14 @@ on:
 
 permissions:
   contents: read
-  security-events: write
   pull-requests: read
+  security-events: write
 
 env:
   TRIVY_VERSION: v0.72.0
   HELM_VERSION: v3.19.0
+  KUBECONFORM_VERSION: v0.7.0
+  KUBECONFORM_URL: "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz"
 
 jobs:
 
@@ -27,14 +29,15 @@ jobs:
     steps:
 
       # ======================================================
-      # Checkout
+      # 1. Checkout GitOps Repository
       # ======================================================
 
       - name: Checkout GitOps Repository
         uses: actions/checkout@v6
 
+
       # ======================================================
-      # Helm
+      # 2. Setup Helm
       # ======================================================
 
       - name: Setup Helm
@@ -42,8 +45,9 @@ jobs:
         with:
           version: ${{ env.HELM_VERSION }}
 
+
       # ======================================================
-      # Helm Lint
+      # 3. Helm Lint
       # ======================================================
 
       - name: Helm Lint
@@ -52,8 +56,9 @@ jobs:
             ./charts/backend \
             -f envs/dev/values-backend.yaml
 
+
       # ======================================================
-      # Render Helm Templates
+      # 4. Render Helm Templates
       # ======================================================
 
       - name: Render Helm Manifests
@@ -65,16 +70,66 @@ jobs:
             -f envs/dev/values-backend.yaml \
             > rendered/backend/backend.yaml
 
+          echo "Helm rendering completed successfully."
+
+
       # ======================================================
-      # Show rendered manifests
+      # 5. Show Rendered Kubernetes Manifests
       # ======================================================
 
       - name: Show Rendered Kubernetes Manifests
         run: |
+          echo "=================================================="
+          echo "Rendered Kubernetes Manifests"
+          echo "=================================================="
+
           cat rendered/backend/backend.yaml
 
+
       # ======================================================
-      # Trivy Setup
+      # 6. Install Kubeconform
+      # ======================================================
+
+      - name: Install Kubeconform
+        run: |
+          set -e
+
+          KUBECONFORM_URL=$KUBECONFORM_URL
+
+          echo "Downloading Kubeconform ${KUBECONFORM_VERSION}..."
+
+          curl -fsSL \
+            "$KUBECONFORM_URL" \
+            -o /tmp/kubeconform.tar.gz
+
+          echo "Extracting Kubeconform..."
+
+          tar -xzf /tmp/kubeconform.tar.gz \
+            -C /tmp
+
+          sudo install \
+            /tmp/kubeconform \
+            /usr/local/bin/kubeconform
+
+          echo "Kubeconform version:"
+          kubeconform -v
+
+
+      # ======================================================
+      # 7. Kubeconform - Kubernetes Schema Validation
+      # ======================================================
+
+      - name: Kubeconform - Kubernetes Schema Validation
+        run: |
+          kubeconform \
+            -strict \
+            -summary \
+            -output text \
+            rendered/backend/backend.yaml
+
+
+      # ======================================================
+      # 8. Setup Trivy
       # ======================================================
 
       - name: Setup Trivy
@@ -82,11 +137,12 @@ jobs:
         with:
           version: ${{ env.TRIVY_VERSION }}
 
+
       # ======================================================
-      # Trivy Kubernetes Configuration Scan
+      # 9. Trivy - Kubernetes Security Scan
       # ======================================================
 
-      - name: Trivy Kubernetes Manifest Scan
+      - name: Trivy - Kubernetes Manifest Security Scan
         run: |
           trivy config \
             --severity HIGH,CRITICAL \
@@ -94,8 +150,9 @@ jobs:
             --format table \
             rendered/
 
+
       # ======================================================
-      # Generate SARIF
+      # 10. Generate Trivy SARIF
       # ======================================================
 
       - name: Generate Trivy SARIF
@@ -107,8 +164,9 @@ jobs:
             --output trivy-kubernetes.sarif \
             rendered/
 
+
       # ======================================================
-      # Upload SARIF
+      # 11. Upload Trivy SARIF to GitHub Security
       # ======================================================
 
       - name: Upload Trivy SARIF

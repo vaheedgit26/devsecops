@@ -45,8 +45,12 @@ on:
         type: string
 
     outputs:
+      image:
+        description: "Image"
+        value: ${{ jobs.Build-Scan-Push-Image-Job.outputs.image }}
+        
       image_digest:
-        description: "Only Image DIGEST"
+        description: "Image DIGEST"
         value: ${{ jobs.Build-Scan-Push-Image-Job.outputs.image_digest }}
 
       image_with_digest:
@@ -145,7 +149,7 @@ jobs:
           #   --query 'imageDetails[0].imageDigest' \
           #   --output text)
 
-          IMAGE_WITH_DIGEST="${{ inputs.ecr-registry }}/${{ inputs.ecr-repository }}@$DIGEST"
+          IMAGE_WITH_DIGEST="$IMAGE@$DIGEST"
 
           echo "Pushed: $IMAGE_WITH_TAG  (digest: $DIGEST)"
 

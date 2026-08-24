@@ -1,109 +1,92 @@
-name: GitOps CI - Helm Render + Kubernetes Security Scan
+name: GitOps CI - Helm + Kubernetes Security
 
 on:
   pull_request:
     branches:
       - main
     paths:
-      - 'envs/**'
       - 'charts/**'
-      - 'helm/**'
+      - 'envs/**'
       - '.github/workflows/gitops-ci.yml'
 
 permissions:
   contents: read
-  pull-requests: read
   security-events: write
+  pull-requests: read
 
 env:
   TRIVY_VERSION: v0.72.0
+  HELM_VERSION: v3.19.0
 
 jobs:
 
-  # ============================================================
-  # 1. Render Helm charts
-  # ============================================================
-
-  Helm-Render:
-    name: Helm Render
+  GitOps-Validation:
+    name: Helm + Kubernetes Security Validation
     runs-on: ubuntu-latest
 
     steps:
 
+      # ======================================================
+      # Checkout
+      # ======================================================
+
       - name: Checkout GitOps Repository
         uses: actions/checkout@v6
+
+      # ======================================================
+      # Helm
+      # ======================================================
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.19.0
+          version: ${{ env.HELM_VERSION }}
 
-      # --------------------------------------------------------
-      # Render backend Helm chart
-      # --------------------------------------------------------
+      # ======================================================
+      # Helm Lint
+      # ======================================================
 
-      - name: Render Backend Helm Chart
+      - name: Helm Lint
+        run: |
+          helm lint \
+            ./charts/backend \
+            -f envs/dev/values-backend.yaml
+
+      # ======================================================
+      # Render Helm Templates
+      # ======================================================
+
+      - name: Render Helm Manifests
         run: |
           mkdir -p rendered/backend
 
-          helm template backend ./charts/backend \
+          helm template backend \
+            ./charts/backend \
             -f envs/dev/values-backend.yaml \
             > rendered/backend/backend.yaml
 
-      # --------------------------------------------------------
+      # ======================================================
       # Show rendered manifests
-      # --------------------------------------------------------
+      # ======================================================
 
-      - name: Show Rendered Manifests
+      - name: Show Rendered Kubernetes Manifests
         run: |
           cat rendered/backend/backend.yaml
 
-      # --------------------------------------------------------
-      # Upload rendered manifests for next job
-      # --------------------------------------------------------
-
-      - name: Upload Rendered Manifests
-        uses: actions/upload-artifact@v4
-        with:
-          name: rendered-kubernetes-manifests
-          path: rendered/
-
-
-  # ============================================================
-  # 2. Trivy Kubernetes Manifest Scan
-  # ============================================================
-
-  Trivy-Kubernetes-Scan:
-    name: Trivy Kubernetes Manifest Scan
-    runs-on: ubuntu-latest
-    needs:
-      - Helm-Render
-
-    steps:
-
-      - name: Checkout GitOps Repository
-        uses: actions/checkout@v6
-
-      - name: Download Rendered Manifests
-        uses: actions/download-artifact@v4
-        with:
-          name: rendered-kubernetes-manifests
-          path: rendered/
-
-      # --------------------------------------------------------
-      # Install Trivy
-      # --------------------------------------------------------
+      # ======================================================
+      # Trivy Setup
+      # ======================================================
 
       - name: Setup Trivy
         uses: aquasecurity/setup-trivy@v0.2.6
         with:
           version: ${{ env.TRIVY_VERSION }}
 
-      # --------------------------------------------------------
-      # Trivy Kubernetes configuration scan
-      # --------------------------------------------------------
+      # ======================================================
+      # Trivy Kubernetes Configuration Scan
+      # ======================================================
 
-      - name: Trivy - Kubernetes Manifest Scan
+      - name: Trivy Kubernetes Manifest Scan
         run: |
           trivy config \
             --severity HIGH,CRITICAL \
@@ -111,11 +94,11 @@ jobs:
             --format table \
             rendered/
 
-      # --------------------------------------------------------
+      # ======================================================
       # Generate SARIF
-      # --------------------------------------------------------
+      # ======================================================
 
-      - name: Trivy - Generate SARIF
+      - name: Generate Trivy SARIF
         if: always()
         run: |
           trivy config \
@@ -124,9 +107,9 @@ jobs:
             --output trivy-kubernetes.sarif \
             rendered/
 
-      # --------------------------------------------------------
+      # ======================================================
       # Upload SARIF
-      # --------------------------------------------------------
+      # ======================================================
 
       - name: Upload Trivy SARIF
         if: always()
@@ -134,28 +117,3 @@ jobs:
         with:
           sarif_file: trivy-kubernetes.sarif
           category: trivy-kubernetes-manifests
-
-
-  # ============================================================
-  # 3. Helm lint
-  # ============================================================
-
-  Helm-Lint:
-    name: Helm Lint
-    runs-on: ubuntu-latest
-
-    steps:
-
-      - name: Checkout GitOps Repository
-        uses: actions/checkout@v6
-
-      - name: Setup Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: v3.19.0
-
-      - name: Helm Lint
-        run: |
-          helm lint \
-            ./charts/backend \
-            -f envs/dev/values-backend.yaml

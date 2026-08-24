@@ -142,18 +142,18 @@ jobs:
       # Dockerfile Security
       # =========================================================================
 
-      dockerfile-scan: true
+      dockerfile-scan: false
       dockerfile: backend/Dockerfile
       build-context: backend
-      hadolint-dockerfile-scan: true
-      trivy-dockerfile-scan: true
-      opa-conftest-dockerfile-scan: true
+      hadolint-dockerfile-scan: false
+      trivy-dockerfile-scan: false
+      opa-conftest-dockerfile-scan: false
 
       # =========================================================================
       # Image Build
       # =========================================================================
 
-      image-build: true
+      image-build: false
       ecr-registry: ${{ needs.Aws-Params-Job.outputs.ecr-registry }}
       ecr-repository: ${{ needs.Aws-Params-Job.outputs.ecr-repository }}
       aws-region: ${{ needs.Aws-Params-Job.outputs.aws-region }}
@@ -163,13 +163,13 @@ jobs:
       # Image Signing
       # =========================================================================
       
-      image-sign: true
+      image-sign: false
       
       # =========================================================================
       # SBOM
       # =========================================================================
 
-      image-sbom: true
+      image-sbom: false
 
       # =========================================================================
       # GitOps

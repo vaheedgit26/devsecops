@@ -82,8 +82,8 @@ jobs:
       
       - name: Print DIGEST and IMAGE WITH DIGEST
         run: |
+          echo "Image: ${{ inputs.image }}"
           echo "Image DIGEST: ${{ inputs.image-digest }}"
-          echo "Image with DIGEST: ${{ inputs.image-with-digest }}"
           
       # --------------------------------------------------
       # Update Helm values

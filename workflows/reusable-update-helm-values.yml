@@ -104,7 +104,8 @@ jobs:
           echo "------------------------------------"
 
           sed -i "s|digest: .*|digest: $DIGEST|g" "$VALUES_FILE"
-            
+          
+        #  yq -i '.image.digest = strenv(DIGEST)' "$VALUES_FILE"
 
       # --------------------------------------------------
       # Show updated values

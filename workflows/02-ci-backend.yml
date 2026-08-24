@@ -58,8 +58,17 @@ jobs:
     needs: [Aws-Params-Job]
     uses: ./.github/workflows/_go-build.yml
     with: 
+
+      # ======================================================
+      # 1. General
+      # ======================================================
+
       service-name: backend      # ${{ needs.Aws-Params-Job.outputs.ecr-repository }}
       runner: ubuntu-latest
+
+      # ======================================================
+      # 2. Application Scans
+      # ======================================================
       
       gitleaks-scan: true
       trivy-fs-scan: true
@@ -67,16 +76,50 @@ jobs:
       sonarqube-scan: false
       sonar-host-url: ""        # ${{ vars.SONAR_HOST_URL }}
 
-      image-build: false
-      dockerfile: backend/Dockerfile
-      build-context: backend
-      
+      # ======================================================
+      # 3. Dockerfile Scans
+      # ======================================================
+
+      dockerfile-scan: false
       trivy-dockerfile-scan: false
       hadolint-dockerfile-scan: false
       opa-conftest-dockerfile-scan: false
 
+      # ======================================================
+      # 4. Image Build
+      # ======================================================
+
+      image-build: false
+      
+      dockerfile: backend/Dockerfile
+      build-context: backend
+      
+      ecr-registry: ""
+      ecr-repository: ""
+      
+      aws-region: ""
+      aws-ecr-role-arn:
+      
+      # ============================================================
+      # 5. COSIGN IMAGE SIGNING
+      # ============================================================
+
       image-sign: false
+      aws-region: ""
+      aws-ecr-role-arn: ""
+
+      # ============================================================
+      # 6. SBOM GENERATION + ATTESTATION
+      # ============================================================
       image-sbom: false
+      aws-region: ""
+      aws-ecr-role-arn: ""
+
+      # ============================================================
+      # 7. UPDATE GITOPS + CREATE PR
+      # ============================================================
+      gitops-repo: ""
+      helm-values-file: ""
       
       ecr-registry: ${{ needs.Aws-Params-Job.outputs.ecr-registry }}
       ecr-repository: ${{ needs.Aws-Params-Job.outputs.ecr-repository }}
@@ -86,3 +129,4 @@ jobs:
 
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+       GITOPS_TOKEN: $${{ secrets.GITOPS_TOKEN }}

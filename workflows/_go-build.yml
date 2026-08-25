@@ -234,7 +234,7 @@ jobs:
       - Pr-Check-Job
       - Dockerfile-Scan-Job
 
-    uses: ./.github/workflows/reusable-image-build.yaml
+    uses: ./.github/workflows/reusable-image-build.yml
 
     with:
       service-name: ${{ inputs.service-name }}
